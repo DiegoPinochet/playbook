@@ -1,0 +1,18 @@
+appId: com.diegopinochet.playbook
+productName: Playbook
+directories:
+  output: release
+files:
+  - "out/**/*"
+  - "package.json"
+asarUnpack:
+  - "node_modules/ffmpeg-static/**"
+mac:
+  category: public.app-category.video
+  target:
+    - dmg
+    - zip
+  hardenedRuntime: false
+  gatekeeperAssess: false
+dmg:
+  writeUpdateInfo: false

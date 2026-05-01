@@ -41,7 +41,7 @@ Tags are first-class, color-coded, filterable. Source: left rail of mockup.
 
 Tags are **multi-assign** per clip (e.g., `lineout` + `set-piece` + `ours`). Counts shown are illustrative defaults, not seeded data.
 
-User can add custom tags (`+ new` button in mockup).
+**Tag system**: the 13 tags above are hardcoded defaults shipped with the app; users can create additional **free-text custom tags** via the `+ new` button (persisted to `<platform>/<opponent>/<match>/tags.json` per match, or globally — TBD during build).
 
 ## Screens & layout (from mockup `design-mockup.png`)
 
@@ -105,12 +105,9 @@ Match identity: `Sharks vs Stormers / R12 · 80:00 · 1080p`.
 2. **Multi-track timeline** is a richer component than originally scoped — three rows (VIDEO / CLIPS / NOTES) with horizontal time scale.
 3. **Toolbar with keybinds** — `V/I/O/S/T/B/D/M` should be wired into a `useKeyboardShortcuts` hook; document in CLAUDE.md.
 4. **Search-everywhere (`⌘K`)** — adds a `cmdk`-style command palette; defer to v2 if scope is tight, but include shadcn `Command` component in the UI package.
-5. **Pitch tactical view** — the dot-on-field visualization (center frame in mockup) is either:
-   - A separate viewing mode that overlays player-position data, OR
-   - The pause-frame annotation canvas with shaped markers.
-   Treat as the v1 annotation canvas (draw arrows, dots, rects on the paused frame), and revisit "true tactical-board" view post-MVP.
+5. **Pitch tactical view** — out of scope for MVP. The dots-on-field shown in the mockup are deferred to a future iteration. The v1 pause-frame annotation is plain canvas drawing on top of the paused video frame (arrows, circles, rects, text).
 6. **Export** — produces an mp4 of a single clip or a concatenated playlist. Backed by ffmpeg `concat demuxer` for playlist export.
-7. **Branding** — mockup says "RuckCut"; current repo is `playbook`. Open question for user.
+7. **Branding** — product is "Playbook". The "RuckCut" label in the mockup is illustrative only.
 
 ## Reference
 

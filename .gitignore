@@ -1,11 +1,13 @@
 node_modules/
 dist/
 out/
+release/
+dist-electron/
 .turbo/
-.next/
 .env
 .env.local
 .DS_Store
 *.log
 .vscode/
 .idea/
+*.tsbuildinfo

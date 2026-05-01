@@ -1,0 +1,7 @@
+node_modules
+dist
+out
+release
+dist-electron
+.turbo
+pnpm-lock.yaml
