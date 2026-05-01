@@ -3,9 +3,11 @@ import { defineConfig, externalizeDepsPlugin } from "electron-vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 
+const WORKSPACE_DEPS = ["@playbook/business-logic", "@playbook/file-system", "@playbook/ui"];
+
 export default defineConfig({
   main: {
-    plugins: [externalizeDepsPlugin()],
+    plugins: [externalizeDepsPlugin({ exclude: WORKSPACE_DEPS })],
     build: {
       outDir: "out/main",
       rollupOptions: {
@@ -14,7 +16,7 @@ export default defineConfig({
     },
   },
   preload: {
-    plugins: [externalizeDepsPlugin()],
+    plugins: [externalizeDepsPlugin({ exclude: WORKSPACE_DEPS })],
     build: {
       outDir: "out/preload",
       rollupOptions: {
