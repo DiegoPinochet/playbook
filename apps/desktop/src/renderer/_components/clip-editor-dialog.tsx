@@ -13,33 +13,41 @@ import {
   Textarea,
   toast,
 } from "@playbook/ui";
-import type { TagEntity } from "@playbook/business-logic";
+import type { ClipEntity, TagEntity } from "@playbook/business-logic";
 import { formatTime } from "./timeline";
 
-export function ClipCreateDialog({
+export type ClipEditorSubmit = {
+  title: string;
+  description: string;
+  startSec: number;
+  endSec: number;
+  tagIds: string[];
+  playerNumbers: number[];
+};
+
+type ClipEditorMode =
+  | { kind: "create"; startSec: number | null; endSec: number | null }
+  | { kind: "edit"; clip: ClipEntity };
+
+export function ClipEditorDialog({
   open,
   onOpenChange,
-  startSec,
-  endSec,
+  mode,
   tags,
   onSubmit,
   onCreateCustomTag,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  startSec: number | null;
-  endSec: number | null;
+  mode: ClipEditorMode;
   tags: TagEntity[];
-  onSubmit: (input: {
-    title: string;
-    description: string;
-    startSec: number;
-    endSec: number;
-    tagIds: string[];
-    playerNumbers: number[];
-  }) => Promise<void>;
+  onSubmit: (input: ClipEditorSubmit) => Promise<void>;
   onCreateCustomTag: (label: string) => Promise<void>;
 }) {
+  const isEdit = mode.kind === "edit";
+  const initialStart = mode.kind === "edit" ? mode.clip.startSec : mode.startSec;
+  const initialEnd = mode.kind === "edit" ? mode.clip.endSec : mode.endSec;
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [tagIds, setTagIds] = useState<string[]>([]);
@@ -47,14 +55,20 @@ export function ClipCreateDialog({
   const [newTagLabel, setNewTagLabel] = useState("");
 
   useEffect(() => {
-    if (open) {
+    if (!open) return;
+    if (mode.kind === "edit") {
+      setTitle(mode.clip.title);
+      setDescription(mode.clip.description);
+      setTagIds(mode.clip.tagIds);
+      setPlayersRaw(mode.clip.playerNumbers.join(", "));
+    } else {
       setTitle("");
       setDescription("");
       setTagIds([]);
       setPlayersRaw("");
-      setNewTagLabel("");
     }
-  }, [open]);
+    setNewTagLabel("");
+  }, [open, mode]);
 
   function toggleTag(id: string) {
     setTagIds((prev) => (prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]));
@@ -71,7 +85,7 @@ export function ClipCreateDialog({
   }
 
   async function submit() {
-    if (startSec === null || endSec === null) return;
+    if (initialStart === null || initialEnd === null) return;
     const playerNumbers = playersRaw
       .split(/[\s,]+/)
       .map((s) => parseInt(s, 10))
@@ -79,23 +93,27 @@ export function ClipCreateDialog({
     await onSubmit({
       title: title.trim(),
       description: description.trim(),
-      startSec,
-      endSec,
+      startSec: initialStart,
+      endSec: initialEnd,
       tagIds,
       playerNumbers,
     });
   }
 
-  const valid = startSec !== null && endSec !== null && endSec > startSec && title.trim().length > 0;
+  const valid =
+    initialStart !== null &&
+    initialEnd !== null &&
+    initialEnd > initialStart &&
+    title.trim().length > 0;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-xl">
         <DialogHeader>
-          <DialogTitle>New clip</DialogTitle>
+          <DialogTitle>{isEdit ? "Edit clip" : "New clip"}</DialogTitle>
           <DialogDescription>
-            {startSec !== null && endSec !== null
-              ? `${formatTime(startSec)} → ${formatTime(endSec)} (${formatTime(endSec - startSec)})`
+            {initialStart !== null && initialEnd !== null
+              ? `${formatTime(initialStart)} → ${formatTime(initialEnd)} (${formatTime(initialEnd - initialStart)})`
               : "Mark in/out points first."}
           </DialogDescription>
         </DialogHeader>
@@ -187,7 +205,7 @@ export function ClipCreateDialog({
             Cancel
           </Button>
           <Button disabled={!valid} onClick={submit}>
-            Save clip
+            {isEdit ? "Save changes" : "Save clip"}
           </Button>
         </DialogFooter>
       </DialogContent>

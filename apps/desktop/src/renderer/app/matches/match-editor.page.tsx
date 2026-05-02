@@ -4,6 +4,7 @@ import {
   Download,
   ListPlus,
   Pause,
+  Pencil,
   Play,
   Plus,
   RotateCcw,
@@ -25,7 +26,7 @@ import {
 import type { ClipEntity, MatchEntity, OpponentEntity, TagEntity } from "@playbook/business-logic";
 import { AppShell } from "@/_components/app-shell";
 import { Timeline, formatTime } from "@/_components/timeline";
-import { ClipCreateDialog } from "@/_components/clip-create-dialog";
+import { ClipEditorDialog } from "@/_components/clip-editor-dialog";
 import { useSettingsStore } from "@/_stores/settings.store";
 import { useOpponentsStore } from "@/_stores/opponents.store";
 import { useClipsStore } from "@/_stores/clips.store";
@@ -37,8 +38,15 @@ export function MatchEditorPage() {
   }>();
   const { settings } = useSettingsStore();
   const { opponents, load: loadOpponents } = useOpponentsStore();
-  const { clips, tags, load: loadClips, create: createClip, remove: removeClip, createCustomTag } =
-    useClipsStore();
+  const {
+    clips,
+    tags,
+    load: loadClips,
+    create: createClip,
+    update: updateClip,
+    remove: removeClip,
+    createCustomTag,
+  } = useClipsStore();
 
   const [match, setMatch] = useState<MatchEntity | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -48,6 +56,7 @@ export function MatchEditorPage() {
   const [inSec, setInSec] = useState<number | null>(null);
   const [outSec, setOutSec] = useState<number | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingClip, setEditingClip] = useState<ClipEntity | null>(null);
   const [selectedClipId, setSelectedClipId] = useState<string | null>(null);
   const [filterTagIds, setFilterTagIds] = useState<string[]>([]);
   const [search, setSearch] = useState("");
@@ -85,8 +94,8 @@ export function MatchEditorPage() {
   liveStateRef.current = { currentSec, inSec, outSec };
 
   useEffect(() => {
-    if (dialogOpen) videoRef.current?.pause();
-  }, [dialogOpen]);
+    if (dialogOpen || editingClip) videoRef.current?.pause();
+  }, [dialogOpen, editingClip]);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -380,6 +389,7 @@ export function MatchEditorPage() {
                     setSelectedClipId(clip.id);
                     seekTo(clip.startSec);
                   }}
+                  onEdit={() => setEditingClip(clip)}
                   onDelete={async () => {
                     await removeClip(ctx, clip.id);
                     toast.success("Clip deleted");
@@ -403,11 +413,10 @@ export function MatchEditorPage() {
         </aside>
       </div>
 
-      <ClipCreateDialog
+      <ClipEditorDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-        startSec={inSec}
-        endSec={outSec}
+        mode={{ kind: "create", startSec: inSec, endSec: outSec }}
         tags={tags}
         onSubmit={async (input) => {
           await createClip(ctx, {
@@ -418,6 +427,30 @@ export function MatchEditorPage() {
           setDialogOpen(false);
           setInSec(null);
           setOutSec(null);
+        }}
+        onCreateCustomTag={async (label) => {
+          await createCustomTag(ctx, label);
+        }}
+      />
+
+      <ClipEditorDialog
+        open={editingClip !== null}
+        onOpenChange={(open) => {
+          if (!open) setEditingClip(null);
+        }}
+        mode={editingClip ? { kind: "edit", clip: editingClip } : { kind: "create", startSec: null, endSec: null }}
+        tags={tags}
+        onSubmit={async (input) => {
+          if (!editingClip) return;
+          await updateClip(ctx, {
+            id: editingClip.id,
+            title: input.title,
+            description: input.description,
+            tagIds: input.tagIds,
+            playerNumbers: input.playerNumbers,
+          });
+          toast.success("Clip updated");
+          setEditingClip(null);
         }}
         onCreateCustomTag={async (label) => {
           await createCustomTag(ctx, label);
@@ -441,6 +474,7 @@ function ClipCard({
   tags,
   selected,
   onClick,
+  onEdit,
   onDelete,
   onExport,
 }: {
@@ -448,6 +482,7 @@ function ClipCard({
   tags: TagEntity[];
   selected: boolean;
   onClick: () => void;
+  onEdit: () => void;
   onDelete: () => void;
   onExport: () => void;
 }) {
@@ -493,8 +528,20 @@ function ClipCard({
               variant="ghost"
               onClick={(e) => {
                 e.stopPropagation();
+                onEdit();
+              }}
+              title="Edit"
+            >
+              <Pencil className="size-3" />
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={(e) => {
+                e.stopPropagation();
                 onExport();
               }}
+              title="Export clip"
             >
               <Download className="size-3" />
             </Button>
@@ -505,6 +552,7 @@ function ClipCard({
                 e.stopPropagation();
                 onDelete();
               }}
+              title="Delete"
             >
               <Trash2 className="size-3" />
             </Button>
