@@ -9,14 +9,17 @@ import {
 export async function createMatchUseCase(
   platformFolder: string,
   opponentSlug: string,
-  input: Omit<MatchCreateInput, "sourceVideoPath"> & { videoFileName: string }
+  input: Omit<MatchCreateInput, "sourceVideoPath"> & { videoFileName: string; slug?: string }
 ): Promise<MatchEntity> {
   const parsed = matchCreateInputSchema
     .omit({ sourceVideoPath: true })
     .parse({ opponentId: input.opponentId, title: input.title, date: input.date, venue: input.venue });
 
-  const seedSlug = parsed.date ? `${parsed.date}-${parsed.title}` : parsed.title;
-  const slug = await matchRepository.uniqueSlug(platformFolder, opponentSlug, slugify(seedSlug));
+  let slug = input.slug;
+  if (!slug) {
+    const seedSlug = parsed.date ? `${parsed.date}-${parsed.title}` : parsed.title;
+    slug = await matchRepository.uniqueSlug(platformFolder, opponentSlug, slugify(seedSlug));
+  }
 
   const entity: MatchEntity = {
     id: randomUUID(),

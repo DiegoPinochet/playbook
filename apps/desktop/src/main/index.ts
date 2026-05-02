@@ -1,11 +1,24 @@
-import { app, BrowserWindow, shell } from "electron";
-import { fileURLToPath } from "node:url";
+import { app, BrowserWindow, net, protocol, shell } from "electron";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { dirname, join } from "node:path";
 import { registerIpcHandlers } from "./ipc";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 let mainWindow: BrowserWindow | null = null;
+
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: "playbook-media",
+    privileges: {
+      standard: true,
+      secure: true,
+      supportFetchAPI: true,
+      stream: true,
+      bypassCSP: true,
+    },
+  },
+]);
 
 function createWindow(): void {
   mainWindow = new BrowserWindow({
@@ -41,6 +54,14 @@ function createWindow(): void {
 }
 
 app.whenReady().then(() => {
+  protocol.handle("playbook-media", (request) => {
+    const url = new URL(request.url);
+    const absolutePath = decodeURI(url.pathname);
+    return net.fetch(pathToFileURL(absolutePath).toString(), {
+      bypassCustomProtocolHandlers: true,
+    });
+  });
+
   registerIpcHandlers();
   createWindow();
 

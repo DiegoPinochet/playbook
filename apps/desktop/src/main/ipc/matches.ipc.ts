@@ -7,7 +7,7 @@ import {
   listMatchesUseCase,
   type MatchEntity,
 } from "@playbook/business-logic";
-import { paths, slugify } from "@playbook/file-system";
+import { matchRepository, paths, slugify } from "@playbook/file-system";
 import { handle } from "./_helpers";
 
 type CreateMatchPayload = {
@@ -31,7 +31,8 @@ export function registerMatchesHandlers(): void {
   );
 
   handle<[CreateMatchPayload], MatchEntity>("matches.create", async (_e, payload) => {
-    const slug = slugify(payload.date ? `${payload.date}-${payload.title}` : payload.title);
+    const seed = slugify(payload.date ? `${payload.date}-${payload.title}` : payload.title);
+    const slug = await matchRepository.uniqueSlug(payload.platform, payload.opponentSlug, seed);
     const matchDir = paths.matchDir(payload.platform, payload.opponentSlug, slug);
     const imported = await importVideoUseCase({
       sourceVideoPath: payload.sourceVideoPath,
@@ -43,6 +44,7 @@ export function registerMatchesHandlers(): void {
       date: payload.date,
       venue: payload.venue,
       videoFileName: imported.fileName,
+      slug,
     });
   });
 

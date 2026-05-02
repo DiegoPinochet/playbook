@@ -77,7 +77,8 @@ export function MatchEditorPage() {
 
   const videoSrc = useMemo(() => {
     if (!ctx || !match) return "";
-    return `file://${ctx.platform}/${ctx.opponentSlug}/${ctx.matchSlug}/${match.videoFileName}`;
+    const absolute = `${ctx.platform}/${ctx.opponentSlug}/${ctx.matchSlug}/${match.videoFileName}`;
+    return `playbook-media://local${encodeURI(absolute)}`;
   }, [ctx, match]);
 
   useEffect(() => {
