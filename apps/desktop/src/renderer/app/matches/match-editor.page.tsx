@@ -6,8 +6,8 @@ import {
   Pause,
   Play,
   Plus,
-  SkipBack,
-  SkipForward,
+  RotateCcw,
+  RotateCw,
   Trash2,
   Users,
 } from "lucide-react";
@@ -262,15 +262,27 @@ export function MatchEditorPage() {
             )}
           </div>
           <div className="flex items-center gap-2 border-t border-border bg-card/40 px-3 py-2">
-            <Button size="icon-sm" variant="ghost" onClick={() => seekBy(-5)}>
-              <SkipBack className="size-4" />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button size="sm" variant="ghost" className="gap-1" onClick={() => seekBy(-10)}>
+                  <RotateCcw className="size-4" />
+                  <span className="text-[11px] font-semibold tabular-nums">10</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Back 10s</TooltipContent>
+            </Tooltip>
             <Button size="icon" variant="default" onClick={togglePlay}>
               {isPlaying ? <Pause className="size-4" /> : <Play className="size-4" />}
             </Button>
-            <Button size="icon-sm" variant="ghost" onClick={() => seekBy(5)}>
-              <SkipForward className="size-4" />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button size="sm" variant="ghost" className="gap-1" onClick={() => seekBy(10)}>
+                  <span className="text-[11px] font-semibold tabular-nums">10</span>
+                  <RotateCw className="size-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Forward 10s</TooltipContent>
+            </Tooltip>
             <span className="ml-2 font-mono text-xs">
               {formatTime(currentSec)} / {formatTime(durationSec)}
             </span>
