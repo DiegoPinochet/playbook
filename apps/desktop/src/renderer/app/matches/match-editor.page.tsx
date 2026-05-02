@@ -81,29 +81,45 @@ export function MatchEditorPage() {
     return `playbook-media://local${encodeURI(absolute)}`;
   }, [ctx, match]);
 
+  const liveStateRef = useRef({ currentSec, inSec, outSec });
+  liveStateRef.current = { currentSec, inSec, outSec };
+
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       const target = e.target as HTMLElement | null;
-      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA")) return;
-      if (e.key === " ") {
+      const tag = target?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || (target as HTMLElement)?.isContentEditable) {
+        return;
+      }
+      const live = liveStateRef.current;
+      if (e.code === "Space") {
         e.preventDefault();
         togglePlay();
-      } else if (e.key.toLowerCase() === "i") {
-        setInSec(currentSec);
-      } else if (e.key.toLowerCase() === "o") {
-        setOutSec(currentSec);
-      } else if (e.key === "ArrowLeft") {
-        seekBy(-1);
-      } else if (e.key === "ArrowRight") {
-        seekBy(1);
-      } else if (e.key === "Enter" && inSec !== null && outSec !== null && outSec > inSec) {
+      } else if (e.code === "KeyI") {
+        e.preventDefault();
+        setInSec(live.currentSec);
+      } else if (e.code === "KeyO") {
+        e.preventDefault();
+        setOutSec(live.currentSec);
+      } else if (e.code === "ArrowLeft") {
+        e.preventDefault();
+        seekBy(e.shiftKey ? -5 : -1);
+      } else if (e.code === "ArrowRight") {
+        e.preventDefault();
+        seekBy(e.shiftKey ? 5 : 1);
+      } else if (
+        e.code === "Enter" &&
+        live.inSec !== null &&
+        live.outSec !== null &&
+        live.outSec > live.inSec
+      ) {
+        e.preventDefault();
         setDialogOpen(true);
       }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentSec, inSec, outSec]);
+  }, []);
 
   function togglePlay() {
     const v = videoRef.current;

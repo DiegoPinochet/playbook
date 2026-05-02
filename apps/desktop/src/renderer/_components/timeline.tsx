@@ -30,12 +30,29 @@ export function Timeline({
     return Math.max(0, Math.min(100, (sec / durationSec) * 100));
   }
 
-  function handleClick(e: React.MouseEvent<HTMLDivElement>) {
-    if (!trackRef.current || durationSec <= 0) return;
-    const rect = trackRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
+  function seekFromClientX(clientX: number) {
+    const rect = trackRef.current?.getBoundingClientRect();
+    if (!rect || durationSec <= 0) return;
+    const x = clientX - rect.left;
     const sec = (x / rect.width) * durationSec;
     onSeek(Math.max(0, Math.min(durationSec, sec)));
+  }
+
+  function handlePointerDown(e: React.PointerEvent<HTMLDivElement>) {
+    e.preventDefault();
+    e.currentTarget.setPointerCapture(e.pointerId);
+    seekFromClientX(e.clientX);
+  }
+
+  function handlePointerMove(e: React.PointerEvent<HTMLDivElement>) {
+    if (e.buttons !== 1) return;
+    seekFromClientX(e.clientX);
+  }
+
+  function handlePointerUp(e: React.PointerEvent<HTMLDivElement>) {
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    }
   }
 
   const ticks = useMemo(() => {
@@ -66,11 +83,19 @@ export function Timeline({
       <Track label="VIDEO">
         <div
           ref={trackRef}
-          onClick={handleClick}
-          className="relative h-7 w-full cursor-pointer bg-muted/40"
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerUp}
+          className="relative h-7 w-full cursor-ew-resize touch-none bg-muted/40"
         >
           <div
-            className="absolute top-0 h-full w-px bg-primary"
+            className="pointer-events-none absolute top-0 h-full w-0.5 bg-primary"
+            style={{ left: `${pctFromSec(currentSec)}%` }}
+            aria-hidden
+          />
+          <div
+            className="pointer-events-none absolute top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-primary bg-background shadow"
             style={{ left: `${pctFromSec(currentSec)}%` }}
             aria-hidden
           />

@@ -1,6 +1,9 @@
-import { app, BrowserWindow, net, protocol, shell } from "electron";
-import { fileURLToPath, pathToFileURL } from "node:url";
-import { dirname, join } from "node:path";
+import { app, BrowserWindow, protocol, shell } from "electron";
+import { createReadStream } from "node:fs";
+import { stat } from "node:fs/promises";
+import { Readable } from "node:stream";
+import { fileURLToPath } from "node:url";
+import { dirname, extname, join } from "node:path";
 import { registerIpcHandlers } from "./ipc";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -19,6 +22,68 @@ protocol.registerSchemesAsPrivileged([
     },
   },
 ]);
+
+const MIME_BY_EXT: Record<string, string> = {
+  ".mp4": "video/mp4",
+  ".mov": "video/quicktime",
+  ".m4v": "video/x-m4v",
+  ".mkv": "video/x-matroska",
+  ".webm": "video/webm",
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+};
+
+async function serveLocalFile(request: Request): Promise<Response> {
+  const url = new URL(request.url);
+  const absolutePath = decodeURI(url.pathname);
+  let info;
+  try {
+    info = await stat(absolutePath);
+  } catch {
+    return new Response("Not found", { status: 404 });
+  }
+  if (!info.isFile()) return new Response("Not found", { status: 404 });
+
+  const size = info.size;
+  const mime = MIME_BY_EXT[extname(absolutePath).toLowerCase()] ?? "application/octet-stream";
+  const range = request.headers.get("Range");
+
+  if (range) {
+    const match = /bytes=(\d+)-(\d+)?/.exec(range);
+    if (!match) return new Response("Invalid Range", { status: 416 });
+    const start = Number(match[1]);
+    const end = match[2] ? Number(match[2]) : size - 1;
+    if (start >= size || end >= size || start > end) {
+      return new Response("Range Not Satisfiable", {
+        status: 416,
+        headers: { "Content-Range": `bytes */${size}` },
+      });
+    }
+    const stream = createReadStream(absolutePath, { start, end });
+    return new Response(Readable.toWeb(stream) as ReadableStream, {
+      status: 206,
+      headers: {
+        "Content-Type": mime,
+        "Content-Length": String(end - start + 1),
+        "Content-Range": `bytes ${start}-${end}/${size}`,
+        "Accept-Ranges": "bytes",
+        "Cache-Control": "no-cache",
+      },
+    });
+  }
+
+  const stream = createReadStream(absolutePath);
+  return new Response(Readable.toWeb(stream) as ReadableStream, {
+    status: 200,
+    headers: {
+      "Content-Type": mime,
+      "Content-Length": String(size),
+      "Accept-Ranges": "bytes",
+      "Cache-Control": "no-cache",
+    },
+  });
+}
 
 function createWindow(): void {
   mainWindow = new BrowserWindow({
@@ -54,13 +119,7 @@ function createWindow(): void {
 }
 
 app.whenReady().then(() => {
-  protocol.handle("playbook-media", (request) => {
-    const url = new URL(request.url);
-    const absolutePath = decodeURI(url.pathname);
-    return net.fetch(pathToFileURL(absolutePath).toString(), {
-      bypassCustomProtocolHandlers: true,
-    });
-  });
+  protocol.handle("playbook-media", serveLocalFile);
 
   registerIpcHandlers();
   createWindow();
