@@ -85,6 +85,10 @@ export function MatchEditorPage() {
   liveStateRef.current = { currentSec, inSec, outSec };
 
   useEffect(() => {
+    if (dialogOpen) videoRef.current?.pause();
+  }, [dialogOpen]);
+
+  useEffect(() => {
     function onKey(e: KeyboardEvent) {
       const target = e.target as HTMLElement | null;
       const tag = target?.tagName;
@@ -98,15 +102,16 @@ export function MatchEditorPage() {
       } else if (e.code === "KeyI") {
         e.preventDefault();
         setInSec(live.currentSec);
+        setOutSec(null);
       } else if (e.code === "KeyO") {
         e.preventDefault();
         setOutSec(live.currentSec);
       } else if (e.code === "ArrowLeft") {
         e.preventDefault();
-        seekBy(e.shiftKey ? -5 : -1);
+        seekBy(-10);
       } else if (e.code === "ArrowRight") {
         e.preventDefault();
-        seekBy(e.shiftKey ? 5 : 1);
+        seekBy(10);
       } else if (
         e.code === "Enter" &&
         live.inSec !== null &&
@@ -195,13 +200,12 @@ export function MatchEditorPage() {
             Tools
           </div>
           <div className="mt-2 grid grid-cols-2 gap-1.5 text-xs">
-            <ToolKey k="V">Select</ToolKey>
             <ToolKey k="I">Mark in</ToolKey>
             <ToolKey k="O">Mark out</ToolKey>
             <ToolKey k="␣">Play/pause</ToolKey>
-            <ToolKey k="←">−1s</ToolKey>
-            <ToolKey k="→">+1s</ToolKey>
             <ToolKey k="↵">Save clip</ToolKey>
+            <ToolKey k="←">−10s</ToolKey>
+            <ToolKey k="→">+10s</ToolKey>
           </div>
           <Separator className="my-3" />
           <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -233,21 +237,33 @@ export function MatchEditorPage() {
         </aside>
 
         <section className="flex min-w-0 flex-1 flex-col">
-          <div className="flex items-center gap-3 border-b border-border bg-card/40 px-4 py-2 text-xs">
-            <span className="flex items-center gap-1">
-              <span
-                className={`size-2 rounded-full ${inSec !== null && outSec !== null ? "bg-emerald-500" : "bg-muted-foreground/40"}`}
-              />
-              REC
-            </span>
-            <span className="font-mono">
-              {inSec !== null ? formatTime(inSec) : "--:--"} →{" "}
-              {outSec !== null ? formatTime(outSec) : "--:--"}
-              {inSec !== null && outSec !== null && outSec > inSec && (
-                <span className="text-muted-foreground"> ({formatTime(outSec - inSec)})</span>
-              )}
-            </span>
-          </div>
+          {(() => {
+            const recording = inSec !== null && outSec === null;
+            return (
+              <div className="flex items-center gap-3 border-b border-border bg-card/40 px-4 py-2 text-xs">
+                <span
+                  className={`flex items-center gap-1.5 ${recording ? "text-red-500" : "text-muted-foreground"}`}
+                >
+                  <span className="relative flex size-2">
+                    {recording && (
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500/70" />
+                    )}
+                    <span
+                      className={`relative inline-flex size-2 rounded-full ${recording ? "bg-red-500" : "bg-muted-foreground/40"}`}
+                    />
+                  </span>
+                  REC
+                </span>
+                <span className="font-mono">
+                  {inSec !== null ? formatTime(inSec) : "--:--"} →{" "}
+                  {outSec !== null ? formatTime(outSec) : "--:--"}
+                  {inSec !== null && outSec !== null && outSec > inSec && (
+                    <span className="text-muted-foreground"> ({formatTime(outSec - inSec)})</span>
+                  )}
+                </span>
+              </div>
+            );
+          })()}
           <div className="flex min-h-0 flex-1 items-center justify-center bg-black">
             {videoSrc && (
               <video
@@ -289,7 +305,14 @@ export function MatchEditorPage() {
             <div className="ml-auto flex items-center gap-1">
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button size="sm" variant="outline" onClick={() => setInSec(currentSec)}>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      setInSec(currentSec);
+                      setOutSec(null);
+                    }}
+                  >
                     Mark in (I)
                   </Button>
                 </TooltipTrigger>
