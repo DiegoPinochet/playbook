@@ -10,6 +10,7 @@ export const clipSchema = z
     endSec: z.number().positive(),
     tagIds: z.array(z.string()).default([]),
     playerNumbers: z.array(z.number().int().min(1).max(99)).default([]),
+    starred: z.boolean().default(false),
     createdAt: z.string().datetime(),
   })
   .refine((c) => c.endSec > c.startSec, {
@@ -33,6 +34,7 @@ export type ClipCreateInput = z.infer<typeof clipCreateInputSchema>;
 
 export const clipUpdateInputSchema = clipCreateInputSchema.partial().extend({
   id: z.string().uuid(),
+  starred: z.boolean().optional(),
 });
 
 export type ClipUpdateInput = z.infer<typeof clipUpdateInputSchema>;
@@ -41,4 +43,5 @@ export type ClipFilter = {
   tagIds?: string[];
   playerNumbers?: number[];
   search?: string;
+  starredOnly?: boolean;
 };

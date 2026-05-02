@@ -1,4 +1,5 @@
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Star } from "lucide-react";
 import { cn, Tooltip, TooltipContent, TooltipTrigger } from "@playbook/ui";
 import type { ClipEntity, TagEntity } from "@playbook/business-logic";
 
@@ -20,10 +21,23 @@ export function Timeline({
   selectedClipId: string | null;
 }) {
   const trackRef = useRef<HTMLDivElement | null>(null);
+  const [trackWidth, setTrackWidth] = useState(0);
   const tagColor = useMemo(
     () => Object.fromEntries(tags.map((t) => [t.id, t.color])),
     [tags]
   );
+
+  useEffect(() => {
+    const el = trackRef.current;
+    if (!el) return;
+    setTrackWidth(el.getBoundingClientRect().width);
+    const ro = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (entry) setTrackWidth(entry.contentRect.width);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   function pctFromSec(sec: number) {
     if (durationSec <= 0) return 0;
@@ -56,28 +70,40 @@ export function Timeline({
   }
 
   const ticks = useMemo(() => {
+    if (durationSec <= 0 || trackWidth <= 0) return [];
+    const TARGET_PX = 90;
+    const targetCount = Math.max(2, Math.floor(trackWidth / TARGET_PX));
+    const rawStep = durationSec / targetCount;
+    const niceSteps = [1, 2, 5, 10, 15, 30, 60, 120, 300, 600, 900, 1800, 3600];
+    const step = niceSteps.find((s) => s >= rawStep) ?? 3600;
     const out: { sec: number; label: string }[] = [];
-    const step = durationSec >= 600 ? 300 : durationSec >= 120 ? 60 : 10;
     for (let s = 0; s <= durationSec; s += step) {
-      const m = Math.floor(s / 60);
-      const sec = s % 60;
-      out.push({ sec: s, label: `${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}` });
+      out.push({ sec: s, label: formatTime(s) });
     }
     return out;
-  }, [durationSec]);
+  }, [durationSec, trackWidth]);
 
   return (
     <div className="border-t border-border bg-sidebar/50">
-      <div className="relative h-5 select-none border-b border-border text-[10px] text-muted-foreground">
-        {ticks.map((t) => (
-          <div
-            key={t.sec}
-            className="absolute top-0 -translate-x-1/2 px-1 leading-5"
-            style={{ left: `${pctFromSec(t.sec)}%` }}
-          >
-            {t.label}
-          </div>
-        ))}
+      <div className="relative ml-20 h-6 select-none border-b border-border font-mono text-[10px] tabular-nums text-muted-foreground">
+        {ticks.map((t, i) => {
+          const pct = pctFromSec(t.sec);
+          const isFirst = i === 0;
+          const isLast = i === ticks.length - 1;
+          return (
+            <div
+              key={t.sec}
+              className="absolute top-0 flex h-full flex-col items-center"
+              style={{
+                left: `${pct}%`,
+                transform: isFirst ? "translateX(0)" : isLast ? "translateX(-100%)" : "translateX(-50%)",
+              }}
+            >
+              <span className="px-1 leading-4 whitespace-nowrap">{t.label}</span>
+              <span className="h-2 w-px bg-border" aria-hidden />
+            </div>
+          );
+        })}
       </div>
 
       <Track label="VIDEO">
@@ -116,8 +142,9 @@ export function Timeline({
                     type="button"
                     onClick={() => onSelectClip(clip)}
                     className={cn(
-                      "absolute top-1 bottom-1 cursor-pointer rounded-sm border border-black/30 px-1 text-left text-[10px] font-medium text-white shadow-sm transition-transform hover:translate-y-[-1px]",
-                      selectedClipId === clip.id && "ring-2 ring-ring ring-offset-1 ring-offset-sidebar"
+                      "absolute top-1 bottom-1 flex cursor-pointer items-center gap-1 overflow-hidden rounded-sm border border-black/30 px-1 text-left text-[10px] font-medium text-white shadow-sm transition-transform hover:translate-y-[-1px]",
+                      selectedClipId === clip.id && "ring-2 ring-ring ring-offset-1 ring-offset-sidebar",
+                      clip.starred && "ring-1 ring-amber-300"
                     )}
                     style={{
                       left: `${left}%`,
@@ -125,6 +152,9 @@ export function Timeline({
                       backgroundColor: color,
                     }}
                   >
+                    {clip.starred && (
+                      <Star className="size-2.5 shrink-0 fill-amber-300 text-amber-300" />
+                    )}
                     <span className="block truncate">{clip.title}</span>
                   </button>
                 </TooltipTrigger>

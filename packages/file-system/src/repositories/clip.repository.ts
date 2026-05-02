@@ -11,6 +11,7 @@ type ClipRecord = {
   endSec: number;
   tagIds: string[];
   playerNumbers: number[];
+  starred?: boolean;
   createdAt: string;
 };
 

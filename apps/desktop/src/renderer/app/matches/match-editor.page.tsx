@@ -9,6 +9,7 @@ import {
   Plus,
   RotateCcw,
   RotateCw,
+  Star,
   Trash2,
   Users,
 } from "lucide-react";
@@ -59,6 +60,7 @@ export function MatchEditorPage() {
   const [editingClip, setEditingClip] = useState<ClipEntity | null>(null);
   const [selectedClipId, setSelectedClipId] = useState<string | null>(null);
   const [filterTagIds, setFilterTagIds] = useState<string[]>([]);
+  const [starredOnly, setStarredOnly] = useState(false);
   const [search, setSearch] = useState("");
 
   const opponent: OpponentEntity | undefined = opponents.find((o) => o.slug === opponentSlug);
@@ -93,6 +95,12 @@ export function MatchEditorPage() {
   const liveStateRef = useRef({ currentSec, inSec, outSec });
   liveStateRef.current = { currentSec, inSec, outSec };
 
+  const liveSelectedRef = useRef<ClipEntity | null>(null);
+  liveSelectedRef.current = clips.find((c) => c.id === selectedClipId) ?? null;
+
+  const ctxRef = useRef(ctx);
+  ctxRef.current = ctx;
+
   useEffect(() => {
     if (dialogOpen || editingClip) videoRef.current?.pause();
   }, [dialogOpen, editingClip]);
@@ -121,6 +129,11 @@ export function MatchEditorPage() {
       } else if (e.code === "ArrowRight") {
         e.preventDefault();
         seekBy(10);
+      } else if (e.code === "KeyS") {
+        const sel = liveSelectedRef.current;
+        if (!sel) return;
+        e.preventDefault();
+        void updateClip(ctxRef.current!, { id: sel.id, starred: !sel.starred });
       } else if (
         e.code === "Enter" &&
         live.inSec !== null &&
@@ -155,6 +168,7 @@ export function MatchEditorPage() {
   }
 
   const filtered = clips.filter((c) => {
+    if (starredOnly && !c.starred) return false;
     if (filterTagIds.length && !filterTagIds.every((t) => c.tagIds.includes(t))) return false;
     if (search.trim()) {
       const s = search.toLowerCase();
@@ -162,6 +176,8 @@ export function MatchEditorPage() {
     }
     return true;
   });
+
+  const starredCount = clips.filter((c) => c.starred).length;
 
   if (!ctx || !platform) return null;
 
@@ -215,6 +231,7 @@ export function MatchEditorPage() {
             <ToolKey k="↵">Save clip</ToolKey>
             <ToolKey k="←">−10s</ToolKey>
             <ToolKey k="→">+10s</ToolKey>
+            <ToolKey k="S">Star clip</ToolKey>
           </div>
           <Separator className="my-3" />
           <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -359,16 +376,36 @@ export function MatchEditorPage() {
         </section>
 
         <aside className="flex w-80 shrink-0 flex-col border-l border-border bg-sidebar">
-          <div className="flex items-center gap-2 border-b border-border p-3">
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Clips · {filtered.length}
-            </span>
-            <Input
-              placeholder="Search…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="h-7"
-            />
+          <div className="flex flex-col gap-2 border-b border-border p-3">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Clips · {filtered.length}
+              </span>
+              <Input
+                placeholder="Search…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="h-7"
+              />
+            </div>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="sm"
+                  variant={starredOnly ? "secondary" : "outline"}
+                  onClick={() => setStarredOnly((v) => !v)}
+                  className="gap-1.5"
+                  disabled={starredCount === 0 && !starredOnly}
+                >
+                  <Star
+                    className={`size-3.5 ${starredOnly ? "fill-amber-400 text-amber-400" : ""}`}
+                  />
+                  {starredOnly ? "Showing starred" : "Starred only"}
+                  <span className="ml-auto text-[10px] text-muted-foreground">{starredCount}</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Filter to clips marked for review</TooltipContent>
+            </Tooltip>
           </div>
           <div className="flex-1 overflow-auto p-2">
             {filtered.length === 0 && (
@@ -388,6 +425,9 @@ export function MatchEditorPage() {
                   onClick={() => {
                     setSelectedClipId(clip.id);
                     seekTo(clip.startSec);
+                  }}
+                  onToggleStar={async () => {
+                    await updateClip(ctx, { id: clip.id, starred: !clip.starred });
                   }}
                   onEdit={() => setEditingClip(clip)}
                   onDelete={async () => {
@@ -474,6 +514,7 @@ function ClipCard({
   tags,
   selected,
   onClick,
+  onToggleStar,
   onEdit,
   onDelete,
   onExport,
@@ -482,6 +523,7 @@ function ClipCard({
   tags: TagEntity[];
   selected: boolean;
   onClick: () => void;
+  onToggleStar: () => void;
   onEdit: () => void;
   onDelete: () => void;
   onExport: () => void;
@@ -495,6 +537,20 @@ function ClipCard({
       className="cursor-pointer transition-colors data-[selected=true]:border-ring data-[selected=true]:bg-accent/30"
     >
       <div className="flex items-start gap-2 p-2.5">
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleStar();
+          }}
+          title={clip.starred ? "Unstar" : "Star for review"}
+          className="-m-1 mt-0.5 rounded p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-amber-400"
+          aria-pressed={clip.starred}
+        >
+          <Star
+            className={`size-3.5 ${clip.starred ? "fill-amber-400 text-amber-400" : ""}`}
+          />
+        </button>
         <div className="font-mono text-[11px] text-muted-foreground">{formatTime(clip.startSec)}</div>
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">

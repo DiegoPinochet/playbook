@@ -21,6 +21,7 @@ export async function createClipUseCase(
     endSec: parsed.endSec,
     tagIds: parsed.tagIds ?? [],
     playerNumbers: parsed.playerNumbers ?? [],
+    starred: false,
     createdAt: new Date().toISOString(),
   };
   await clipRepository.create(platformFolder, opponentSlug, matchSlug, entity);

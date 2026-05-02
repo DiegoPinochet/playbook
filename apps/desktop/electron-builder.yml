@@ -13,6 +13,7 @@ asarUnpack:
   - "node_modules/ffmpeg-static/**"
 mac:
   category: public.app-category.video
+  icon: build/icon.icns
   target:
     - target: dmg
       arch:

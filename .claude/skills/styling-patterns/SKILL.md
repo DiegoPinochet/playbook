@@ -8,6 +8,7 @@ Read in order:
 - `references/theme.md` — semantic CSS tokens and tag colors
 - `references/components.md` — what's in `@playbook/ui` and how to extend it
 - `references/layouts.md` — `AppShell`, sidebars, the editor's three-column layout
+- `references/brand.md` — where the Playbook glyph / app icon lives and how to use it
 
 ## Quick rules
 
@@ -17,3 +18,4 @@ Read in order:
 4. Dark theme is the default (mockup is dark). Light theme is supported but not the priority.
 5. Icons come from `lucide-react`. Use `size-4` (16px) by default, `size-3` for badges/dense rows.
 6. Round corners: `rounded-md` for cards/buttons, `rounded-sm` for inline chips. Avoid `rounded-full` except for status dots and avatars.
+7. **Brand mark**: import `@/assets/app-icon.png` — the pre-styled icns/dock icon. Don't fall back to a literal "P" or any other placeholder. See `references/brand.md`.

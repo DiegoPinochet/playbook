@@ -1,5 +1,5 @@
 import { clipRepository } from "@playbook/file-system";
-import type { ClipEntity } from "../../clips/clip.entity";
+import { clipSchema, type ClipEntity } from "../../clips/clip.entity";
 
 export type PlayerActionReportRow = {
   playerNumber: number;
@@ -14,7 +14,8 @@ export async function playerActionReportUseCase(
   matchSlug: string,
   playerNumbers: number[]
 ): Promise<PlayerActionReportRow[]> {
-  const allClips = await clipRepository.list(platformFolder, opponentSlug, matchSlug);
+  const records = await clipRepository.list(platformFolder, opponentSlug, matchSlug);
+  const allClips: ClipEntity[] = records.map((r) => clipSchema.parse(r));
   return playerNumbers.map((playerNumber) => {
     const clips = allClips.filter((c) => c.playerNumbers.includes(playerNumber));
     const countsByTag: Record<string, number> = {};

@@ -1,5 +1,10 @@
 import { clipRepository } from "@playbook/file-system";
-import { clipUpdateInputSchema, type ClipEntity, type ClipUpdateInput } from "../clip.entity";
+import {
+  clipSchema,
+  clipUpdateInputSchema,
+  type ClipEntity,
+  type ClipUpdateInput,
+} from "../clip.entity";
 
 export async function updateClipUseCase(
   platformFolder: string,
@@ -8,10 +13,11 @@ export async function updateClipUseCase(
   input: ClipUpdateInput
 ): Promise<ClipEntity> {
   const parsed = clipUpdateInputSchema.parse(input);
-  const existing = await clipRepository.getById(platformFolder, opponentSlug, matchSlug, parsed.id);
-  if (!existing) {
+  const raw = await clipRepository.getById(platformFolder, opponentSlug, matchSlug, parsed.id);
+  if (!raw) {
     throw new Error(`Clip not found: ${parsed.id}`);
   }
+  const existing = clipSchema.parse(raw);
   const next: ClipEntity = {
     ...existing,
     title: parsed.title ?? existing.title,
@@ -20,6 +26,7 @@ export async function updateClipUseCase(
     endSec: parsed.endSec ?? existing.endSec,
     tagIds: parsed.tagIds ?? existing.tagIds,
     playerNumbers: parsed.playerNumbers ?? existing.playerNumbers,
+    starred: parsed.starred ?? existing.starred,
   };
   if (next.endSec <= next.startSec) {
     throw new Error("Clip end must be after start");

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Plus, Upload } from "lucide-react";
 import {
@@ -16,7 +16,6 @@ import {
   DialogTitle,
   Input,
   Label,
-  Textarea,
   toast,
 } from "@playbook/ui";
 import type { OpponentEntity } from "@playbook/business-logic";
@@ -29,7 +28,7 @@ export function OpponentDetailPage() {
   const { opponentSlug } = useParams<{ opponentSlug: string }>();
   const navigate = useNavigate();
   const { settings } = useSettingsStore();
-  const { opponents, load: loadOpponents, update: updateOpponent } = useOpponentsStore();
+  const { opponents, load: loadOpponents } = useOpponentsStore();
   const { matches, load: loadMatches } = useMatchesStore();
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -61,50 +60,36 @@ export function OpponentDetailPage() {
         </Button>
       }
     >
-      <div className="flex min-h-0 flex-1">
-        <section className="min-w-0 flex-1 overflow-auto p-6">
-          <div className="grid auto-rows-min content-start grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
-            {matches.length === 0 && (
-              <Card className="col-span-full">
-                <CardHeader>
-                  <CardTitle>No matches yet</CardTitle>
-                  <CardDescription>Import a video file to start analyzing.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button onClick={() => setDialogOpen(true)}>
-                    <Plus className="size-4" /> Import match
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
-            {matches.map((match) => (
-              <Link
-                key={match.id}
-                to={`/opponents/${opponentSlug}/matches/${match.slug}`}
-                className="block"
-              >
-                <Card className="transition-colors hover:border-ring hover:bg-accent/40">
-                  <CardHeader>
-                    <CardTitle className="truncate">{match.title}</CardTitle>
-                    <CardDescription>
-                      {match.date ?? "no date"} · {match.venue ?? "—"}
-                    </CardDescription>
-                  </CardHeader>
-                </Card>
-              </Link>
-            ))}
-          </div>
-        </section>
-
-        {opponent && (
-          <NotesSidebar
-            opponent={opponent}
-            platformFolder={settings.platformFolder}
-            onSave={async (notes) => {
-              await updateOpponent(settings.platformFolder!, { id: opponent.id, notes });
-            }}
-          />
+      <div className="grid w-full auto-rows-min content-start grid-cols-1 gap-3 overflow-auto p-6 lg:grid-cols-2 xl:grid-cols-3">
+        {matches.length === 0 && (
+          <Card className="col-span-full">
+            <CardHeader>
+              <CardTitle>No matches yet</CardTitle>
+              <CardDescription>Import a video file to start analyzing.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button onClick={() => setDialogOpen(true)}>
+                <Plus className="size-4" /> Import match
+              </Button>
+            </CardContent>
+          </Card>
         )}
+        {matches.map((match) => (
+          <Link
+            key={match.id}
+            to={`/opponents/${opponentSlug}/matches/${match.slug}`}
+            className="block"
+          >
+            <Card className="transition-colors hover:border-ring hover:bg-accent/40">
+              <CardHeader>
+                <CardTitle className="truncate">{match.title}</CardTitle>
+                <CardDescription>
+                  {match.date ?? "no date"} · {match.venue ?? "—"}
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </Link>
+        ))}
       </div>
 
       {opponent && (
@@ -120,64 +105,6 @@ export function OpponentDetailPage() {
         />
       )}
     </AppShell>
-  );
-}
-
-function NotesSidebar({
-  opponent,
-  onSave,
-}: {
-  opponent: OpponentEntity;
-  platformFolder: string;
-  onSave: (notes: string) => Promise<void>;
-}) {
-  const [draft, setDraft] = useState(opponent.notes);
-  const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    setDraft(opponent.notes);
-  }, [opponent.id, opponent.notes]);
-
-  const dirty = useMemo(() => draft !== opponent.notes, [draft, opponent.notes]);
-
-  async function save() {
-    if (!dirty || saving) return;
-    setSaving(true);
-    try {
-      await onSave(draft);
-      toast.success("Notes saved");
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not save notes");
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  return (
-    <aside className="flex w-80 shrink-0 flex-col border-l border-border bg-sidebar">
-      <header className="flex items-center justify-between border-b border-border px-4 py-2.5">
-        <div className="flex items-center gap-2">
-          <span
-            className="size-2.5 rounded-full"
-            style={{ backgroundColor: opponent.color }}
-            aria-hidden
-          />
-          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Notes
-          </span>
-        </div>
-        <Button size="sm" variant="outline" disabled={!dirty || saving} onClick={save}>
-          {saving ? "Saving…" : dirty ? "Save" : "Saved"}
-        </Button>
-      </header>
-      <Textarea
-        value={draft}
-        onChange={(e) => setDraft(e.target.value)}
-        onBlur={() => void save()}
-        placeholder={`Tendencies, key players, notes about ${opponent.name}…`}
-        className="min-h-0 flex-1 resize-none rounded-none border-0 bg-transparent shadow-none focus-visible:ring-0"
-      />
-    </aside>
   );
 }
 

@@ -8,6 +8,18 @@ import { registerIpcHandlers } from "./ipc";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
+app.setName("Playbook");
+app.setAboutPanelOptions({ applicationName: "Playbook" });
+
+if (process.platform === "darwin" && !app.isPackaged && app.dock) {
+  const devIconPath = join(__dirname, "../../build/icon.png");
+  try {
+    app.dock.setIcon(devIconPath);
+  } catch {
+    // ignore: icon will fall back to default in dev
+  }
+}
+
 let mainWindow: BrowserWindow | null = null;
 
 protocol.registerSchemesAsPrivileged([
@@ -95,6 +107,7 @@ function createWindow(): void {
     autoHideMenuBar: true,
     titleBarStyle: "hiddenInset",
     backgroundColor: "#0e1218",
+    icon: join(__dirname, "../../build/icon.png"),
     webPreferences: {
       preload: join(__dirname, "../preload/index.mjs"),
       sandbox: false,
@@ -119,6 +132,10 @@ function createWindow(): void {
 }
 
 app.whenReady().then(() => {
+  if (!app.isPackaged && process.platform === "darwin") {
+    app.dock?.setIcon(join(__dirname, "../../build/icon.png"));
+  }
+
   protocol.handle("playbook-media", serveLocalFile);
 
   registerIpcHandlers();
