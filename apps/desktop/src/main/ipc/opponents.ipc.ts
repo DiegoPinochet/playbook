@@ -3,8 +3,10 @@ import {
   deleteOpponentUseCase,
   getOpponentUseCase,
   listOpponentsUseCase,
+  updateOpponentUseCase,
   type OpponentCreateInput,
   type OpponentEntity,
+  type OpponentUpdateInput,
 } from "@playbook/business-logic";
 import { handle } from "./_helpers";
 
@@ -19,6 +21,11 @@ export function registerOpponentsHandlers(): void {
 
   handle<[string, OpponentCreateInput], OpponentEntity>("opponents.create", (_e, platform, input) =>
     createOpponentUseCase(platform, input)
+  );
+
+  handle<[string, OpponentUpdateInput], OpponentEntity>(
+    "opponents.update",
+    (_e, platform, input) => updateOpponentUseCase(platform, input)
   );
 
   handle<[string, string], void>("opponents.delete", (_e, platform, id) =>

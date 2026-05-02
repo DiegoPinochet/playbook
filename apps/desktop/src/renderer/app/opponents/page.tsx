@@ -42,7 +42,7 @@ export function OpponentsPage() {
         </Button>
       }
     >
-      <div className="grid w-full grid-cols-1 gap-4 overflow-auto p-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+      <div className="grid w-full auto-rows-min content-start grid-cols-1 gap-4 overflow-auto p-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {opponents.length === 0 && (
           <Card className="col-span-full">
             <CardHeader>
@@ -60,7 +60,7 @@ export function OpponentsPage() {
         )}
         {opponents.map((opponent) => (
           <Link key={opponent.id} to={`/opponents/${opponent.slug}`} className="block">
-            <Card className="h-full transition-colors hover:border-ring hover:bg-accent/40">
+            <Card className="transition-colors hover:border-ring hover:bg-accent/40">
               <CardHeader className="flex-row items-center gap-3 space-y-0">
                 <span
                   className="size-8 rounded-md"

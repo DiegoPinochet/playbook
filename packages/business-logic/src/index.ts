@@ -2,6 +2,7 @@ export * from "./opponents/opponent.entity";
 export * from "./opponents/use-cases/create-opponent.use-case";
 export * from "./opponents/use-cases/list-opponents.use-case";
 export * from "./opponents/use-cases/get-opponent.use-case";
+export * from "./opponents/use-cases/update-opponent.use-case";
 export * from "./opponents/use-cases/delete-opponent.use-case";
 
 export * from "./matches/match.entity";

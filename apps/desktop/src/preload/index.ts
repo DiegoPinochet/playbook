@@ -19,6 +19,8 @@ const api = {
     get: (platform: string, id: string) => invoke<unknown>("opponents.get", platform, id),
     create: (platform: string, input: unknown) =>
       invoke<unknown>("opponents.create", platform, input),
+    update: (platform: string, input: unknown) =>
+      invoke<unknown>("opponents.update", platform, input),
     delete: (platform: string, id: string) => invoke<void>("opponents.delete", platform, id),
   },
   matches: {

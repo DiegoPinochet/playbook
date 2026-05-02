@@ -8,6 +8,7 @@ import type {
   MatchEntity,
   OpponentCreateInput,
   OpponentEntity,
+  OpponentUpdateInput,
   PlayerActionReportRow,
   Roster,
   SettingsEntity,
@@ -60,6 +61,7 @@ export interface PlaybookApi {
     list(platform: string): Promise<OpponentEntity[]>;
     get(platform: string, id: string): Promise<OpponentEntity | null>;
     create(platform: string, input: OpponentCreateInput): Promise<OpponentEntity>;
+    update(platform: string, input: OpponentUpdateInput): Promise<OpponentEntity>;
     delete(platform: string, id: string): Promise<void>;
   };
   matches: {
