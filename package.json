@@ -9,6 +9,7 @@
     "typecheck": "turbo run typecheck",
     "format": "prettier --write \"**/*.{ts,tsx,md,json,yml,yaml,css}\"",
     "dist": "turbo run dist",
+    "release": "pnpm --filter @playbook/desktop release",
     "prepare": "husky"
   },
   "devDependencies": {

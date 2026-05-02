@@ -1,6 +1,6 @@
 {
   "name": "@playbook/desktop",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
   "main": "./out/main/index.js",
@@ -9,7 +9,8 @@
     "build": "electron-vite build",
     "lint": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
     "typecheck": "pnpm lint",
-    "dist": "electron-vite build && electron-builder --mac"
+    "dist": "electron-vite build && electron-builder --mac",
+    "release": "node ./scripts/release.mjs"
   },
   "dependencies": {
     "@playbook/business-logic": "workspace:*",
