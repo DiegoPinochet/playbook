@@ -6,6 +6,9 @@ directories:
 files:
   - "out/**/*"
   - "package.json"
+  - "!**/node_modules/@playbook/**"
+  - "!**/.turbo/**"
+  - "!**/*.tsbuildinfo"
 asarUnpack:
   - "node_modules/ffmpeg-static/**"
 mac:
