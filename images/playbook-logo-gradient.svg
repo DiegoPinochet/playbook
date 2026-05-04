@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="50 90 540 620" fill="none">
+  <defs>
+    <linearGradient id="gradient" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="#9E6BFF"/>
+      <stop offset="55%" stop-color="#7533F5"/>
+      <stop offset="100%" stop-color="#4D17C7"/>
+    </linearGradient>
+  </defs>
+  <path
+    d="M 80 220 V 680 H 560 V 380 M 80 220 H 320 V 680 M 240 340 H 480 V 120 M 450 150 L 480 120 L 510 150 M 162 302 L 238 378 M 238 302 L 162 378 M 200 518 A 42 42 0 1 0 200 602 A 42 42 0 1 0 200 518 M 402 502 L 478 578 M 478 502 L 402 578"
+    stroke="url(#gradient)"
+    stroke-width="30"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    fill="none"
+  />
+</svg>
