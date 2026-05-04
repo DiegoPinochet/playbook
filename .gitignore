@@ -12,3 +12,4 @@ dist-electron/
 .idea/
 *.tsbuildinfo
 .claude/settings.local.json
+images/generated-*.png
