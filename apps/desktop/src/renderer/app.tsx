@@ -9,13 +9,15 @@ import { MatchEditorPage } from "./app/matches/match-editor.page";
 import { PlayerReportPage } from "./app/matches/player-report.page";
 
 export function App() {
-  const { load, ready, settings } = useSettingsStore();
+  const { load, ready, settings, platformSport } = useSettingsStore();
 
   useEffect(() => {
     void load();
   }, [load]);
 
   if (!ready) return null;
+
+  const onboarded = Boolean(settings.platformFolder && platformSport);
 
   return (
     <TooltipProvider delayDuration={150}>
@@ -24,7 +26,7 @@ export function App() {
           <Route
             path="/"
             element={
-              settings.platformFolder ? (
+              onboarded ? (
                 <Navigate to="/opponents" replace />
               ) : (
                 <Navigate to="/onboarding" replace />

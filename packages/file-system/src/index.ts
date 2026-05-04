@@ -8,3 +8,4 @@ export { tagRepository } from "./repositories/tag.repository";
 export { playerRepository } from "./repositories/player.repository";
 export { annotationRepository } from "./repositories/annotation.repository";
 export { settingsRepository } from "./repositories/settings.repository";
+export { platformRepository } from "./repositories/platform.repository";

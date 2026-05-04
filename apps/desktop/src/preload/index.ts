@@ -42,14 +42,15 @@ const api = {
       invoke<unknown>("clips.update", platform, opponentSlug, matchSlug, input),
     delete: (platform: string, opponentSlug: string, matchSlug: string, clipId: string) =>
       invoke<void>("clips.delete", platform, opponentSlug, matchSlug, clipId),
-    listTags: (platform: string, opponentSlug: string, matchSlug: string) =>
-      invoke<unknown[]>("clips.listTags", platform, opponentSlug, matchSlug),
-    createCustomTag: (
-      platform: string,
-      opponentSlug: string,
-      matchSlug: string,
-      input: unknown
-    ) => invoke<unknown>("clips.createCustomTag", platform, opponentSlug, matchSlug, input),
+    listTags: (platform: string) => invoke<unknown[]>("clips.listTags", platform),
+    createCustomTag: (platform: string, input: unknown) =>
+      invoke<unknown>("clips.createCustomTag", platform, input),
+  },
+  sports: {
+    getPlatformSport: (platform: string) =>
+      invoke<unknown>("sports.getPlatformSport", platform),
+    setPlatformSport: (platform: string, sport: string) =>
+      invoke<unknown>("sports.setPlatformSport", platform, sport),
   },
   players: {
     list: (platform: string, opponentSlug: string, matchSlug: string) =>

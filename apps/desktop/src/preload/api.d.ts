@@ -12,6 +12,7 @@ import type {
   PlayerActionReportRow,
   Roster,
   SettingsEntity,
+  Sport,
   TagEntity,
 } from "@playbook/business-logic";
 
@@ -91,13 +92,12 @@ export interface PlaybookApi {
       matchSlug: string,
       clipId: string
     ): Promise<void>;
-    listTags(platform: string, opponentSlug: string, matchSlug: string): Promise<TagEntity[]>;
-    createCustomTag(
-      platform: string,
-      opponentSlug: string,
-      matchSlug: string,
-      input: CreateCustomTagInput
-    ): Promise<TagEntity>;
+    listTags(platform: string): Promise<TagEntity[]>;
+    createCustomTag(platform: string, input: CreateCustomTagInput): Promise<TagEntity>;
+  };
+  sports: {
+    getPlatformSport(platform: string): Promise<Sport | null>;
+    setPlatformSport(platform: string, sport: Sport): Promise<Sport>;
   };
   players: {
     list(platform: string, opponentSlug: string, matchSlug: string): Promise<Roster>;

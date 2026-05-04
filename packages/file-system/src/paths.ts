@@ -41,7 +41,8 @@ export const annotationThumbnail = (
 export const playersFile = (platform: string, opponentSlug: string, matchSlug: string) =>
   join(matchDir(platform, opponentSlug, matchSlug), "players.json");
 
-export const tagsFile = (platform: string, opponentSlug: string, matchSlug: string) =>
-  join(matchDir(platform, opponentSlug, matchSlug), "tags.json");
+export const platformConfigFile = (platform: string) => join(platform, "platform.json");
+
+export const globalTagsFile = (platform: string) => join(platform, "tags.json");
 
 export const settingsFile = (userDataDir: string) => join(userDataDir, "settings.json");

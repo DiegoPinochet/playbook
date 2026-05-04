@@ -22,7 +22,7 @@ export const useClipsStore = create<ClipsStore>((set, get) => ({
     set({ loading: true });
     const [clips, tags] = await Promise.all([
       window.api.clips.list(ctx.platform, ctx.opponentSlug, ctx.matchSlug),
-      window.api.clips.listTags(ctx.platform, ctx.opponentSlug, ctx.matchSlug),
+      window.api.clips.listTags(ctx.platform),
     ]);
     set({ clips, tags, loading: false });
   },
@@ -45,10 +45,7 @@ export const useClipsStore = create<ClipsStore>((set, get) => ({
     set({ clips: get().clips.filter((c) => c.id !== clipId) });
   },
   createCustomTag: async (ctx, label, color) => {
-    const tag = await window.api.clips.createCustomTag(ctx.platform, ctx.opponentSlug, ctx.matchSlug, {
-      label,
-      color,
-    });
+    const tag = await window.api.clips.createCustomTag(ctx.platform, { label, color });
     set({ tags: [...get().tags, tag] });
     return tag;
   },

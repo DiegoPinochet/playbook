@@ -5,6 +5,7 @@ import { registerClipsHandlers } from "./clips.ipc";
 import { registerVideoHandlers } from "./video.ipc";
 import { registerPlayersHandlers } from "./players.ipc";
 import { registerAnnotationsHandlers } from "./annotations.ipc";
+import { registerSportsHandlers } from "./sports.ipc";
 
 export function registerIpcHandlers(): void {
   registerSettingsHandlers();
@@ -14,4 +15,5 @@ export function registerIpcHandlers(): void {
   registerVideoHandlers();
   registerPlayersHandlers();
   registerAnnotationsHandlers();
+  registerSportsHandlers();
 }

@@ -37,14 +37,10 @@ export function registerClipsHandlers(): void {
       deleteClipUseCase(platform, opponentSlug, matchSlug, clipId)
   );
 
-  handle<[string, string, string], TagEntity[]>(
-    "clips.listTags",
-    (_e, platform, opponentSlug, matchSlug) => listTagsUseCase(platform, opponentSlug, matchSlug)
-  );
+  handle<[string], TagEntity[]>("clips.listTags", (_e, platform) => listTagsUseCase(platform));
 
-  handle<[string, string, string, CreateCustomTagInput], TagEntity>(
+  handle<[string, CreateCustomTagInput], TagEntity>(
     "clips.createCustomTag",
-    (_e, platform, opponentSlug, matchSlug, input) =>
-      createCustomTagUseCase(platform, opponentSlug, matchSlug, input)
+    (_e, platform, input) => createCustomTagUseCase(platform, input)
   );
 }

@@ -13,7 +13,8 @@ import {
   Textarea,
   toast,
 } from "@playbook/ui";
-import type { ClipEntity, TagEntity } from "@playbook/business-logic";
+import type { ClipEntity, TagEntity } from "@playbook/business-logic/pure";
+import { TAG_COLOR_PALETTE, DEFAULT_TAG_COLOR } from "@playbook/business-logic/pure";
 import { formatTime } from "./timeline";
 
 export type ClipEditorSubmit = {
@@ -42,7 +43,7 @@ export function ClipEditorDialog({
   mode: ClipEditorMode;
   tags: TagEntity[];
   onSubmit: (input: ClipEditorSubmit) => Promise<void>;
-  onCreateCustomTag: (label: string) => Promise<void>;
+  onCreateCustomTag: (label: string, color: string) => Promise<void>;
 }) {
   const isEdit = mode.kind === "edit";
   const initialStart = mode.kind === "edit" ? mode.clip.startSec : mode.startSec;
@@ -53,6 +54,7 @@ export function ClipEditorDialog({
   const [tagIds, setTagIds] = useState<string[]>([]);
   const [playersRaw, setPlayersRaw] = useState("");
   const [newTagLabel, setNewTagLabel] = useState("");
+  const [newTagColor, setNewTagColor] = useState<string>(DEFAULT_TAG_COLOR);
 
   useEffect(() => {
     if (!open) return;
@@ -68,6 +70,7 @@ export function ClipEditorDialog({
       setPlayersRaw("");
     }
     setNewTagLabel("");
+    setNewTagColor(DEFAULT_TAG_COLOR);
   }, [open, mode]);
 
   function toggleTag(id: string) {
@@ -77,8 +80,9 @@ export function ClipEditorDialog({
   async function handleNewTag() {
     if (!newTagLabel.trim()) return;
     try {
-      await onCreateCustomTag(newTagLabel.trim());
+      await onCreateCustomTag(newTagLabel.trim(), newTagColor);
       setNewTagLabel("");
+      setNewTagColor(DEFAULT_TAG_COLOR);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not create tag");
     }
@@ -155,21 +159,39 @@ export function ClipEditorDialog({
                 );
               })}
             </div>
-            <div className="mt-2 flex gap-2">
-              <Input
-                placeholder="Add custom tag…"
-                value={newTagLabel}
-                onChange={(e) => setNewTagLabel(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    void handleNewTag();
-                  }
-                }}
-              />
-              <Button variant="outline" onClick={handleNewTag} disabled={!newTagLabel.trim()}>
-                Add
-              </Button>
+            <div className="mt-2 space-y-2">
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Add custom tag…"
+                  value={newTagLabel}
+                  onChange={(e) => setNewTagLabel(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      void handleNewTag();
+                    }
+                  }}
+                />
+                <Button variant="outline" onClick={handleNewTag} disabled={!newTagLabel.trim()}>
+                  Add
+                </Button>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {TAG_COLOR_PALETTE.map((swatch) => {
+                  const active = newTagColor === swatch;
+                  return (
+                    <button
+                      key={swatch}
+                      type="button"
+                      aria-label={`Pick color ${swatch}`}
+                      onClick={() => setNewTagColor(swatch)}
+                      data-active={active}
+                      className="size-5 rounded-full ring-offset-2 ring-offset-background transition-all data-[active=true]:ring-2 data-[active=true]:ring-foreground"
+                      style={{ backgroundColor: swatch }}
+                    />
+                  );
+                })}
+              </div>
             </div>
           </div>
           <div>

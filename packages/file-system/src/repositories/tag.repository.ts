@@ -10,35 +10,25 @@ type TagRecord = {
 };
 
 export const tagRepository = {
-  async list(
-    platform: string,
-    opponentSlug: string,
-    matchSlug: string
-  ): Promise<TagRecord[]> {
-    return (
-      (await readJson<TagRecord[]>(paths.tagsFile(platform, opponentSlug, matchSlug))) ?? []
-    );
+  async list(platform: string): Promise<TagRecord[]> {
+    return (await readJson<TagRecord[]>(paths.globalTagsFile(platform))) ?? [];
   },
 
-  async create(
-    platform: string,
-    opponentSlug: string,
-    matchSlug: string,
-    record: TagRecord
-  ): Promise<void> {
-    const all = await this.list(platform, opponentSlug, matchSlug);
+  async create(platform: string, record: TagRecord): Promise<void> {
+    const all = await this.list(platform);
     all.push(record);
-    await atomicWriteJson(paths.tagsFile(platform, opponentSlug, matchSlug), all);
+    await atomicWriteJson(paths.globalTagsFile(platform), all);
   },
 
-  async remove(
-    platform: string,
-    opponentSlug: string,
-    matchSlug: string,
-    tagId: string
-  ): Promise<void> {
-    const all = await this.list(platform, opponentSlug, matchSlug);
+  async update(platform: string, record: TagRecord): Promise<void> {
+    const all = await this.list(platform);
+    const next = all.map((t) => (t.id === record.id ? record : t));
+    await atomicWriteJson(paths.globalTagsFile(platform), next);
+  },
+
+  async remove(platform: string, tagId: string): Promise<void> {
+    const all = await this.list(platform);
     const next = all.filter((t) => t.id !== tagId);
-    await atomicWriteJson(paths.tagsFile(platform, opponentSlug, matchSlug), next);
+    await atomicWriteJson(paths.globalTagsFile(platform), next);
   },
 };

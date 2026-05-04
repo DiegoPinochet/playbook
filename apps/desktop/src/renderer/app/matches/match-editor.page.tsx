@@ -468,8 +468,8 @@ export function MatchEditorPage() {
           setInSec(null);
           setOutSec(null);
         }}
-        onCreateCustomTag={async (label) => {
-          await createCustomTag(ctx, label);
+        onCreateCustomTag={async (label, color) => {
+          await createCustomTag(ctx, label, color);
         }}
       />
 
@@ -492,8 +492,8 @@ export function MatchEditorPage() {
           toast.success("Clip updated");
           setEditingClip(null);
         }}
-        onCreateCustomTag={async (label) => {
-          await createCustomTag(ctx, label);
+        onCreateCustomTag={async (label, color) => {
+          await createCustomTag(ctx, label, color);
         }}
       />
     </AppShell>

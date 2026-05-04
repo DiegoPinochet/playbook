@@ -14,6 +14,7 @@ export * from "./matches/use-cases/delete-match.use-case";
 
 export * from "./clips/clip.entity";
 export * from "./clips/tag.entity";
+export * from "./clips/tag-color";
 export * from "./clips/use-cases/create-clip.use-case";
 export * from "./clips/use-cases/update-clip.use-case";
 export * from "./clips/use-cases/list-clips.use-case";
@@ -21,6 +22,8 @@ export * from "./clips/use-cases/filter-clips.use-case";
 export * from "./clips/use-cases/delete-clip.use-case";
 export * from "./clips/use-cases/list-tags.use-case";
 export * from "./clips/use-cases/create-custom-tag.use-case";
+
+export * from "./sports";
 
 export * from "./players/player.entity";
 export * from "./players/use-cases/upsert-roster.use-case";
