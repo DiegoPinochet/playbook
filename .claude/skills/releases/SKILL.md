@@ -33,6 +33,10 @@ git add apps/desktop/package.json && git commit -m "🔖 v0.1.1"
 pnpm release
 ```
 
+## Version bump policy
+
+**Default to a patch bump** (e.g. `0.2.1 → 0.2.2`), even when the release ships new features. Don't apply standard semver feature/breaking heuristics — the user's convention treats the patch component as the normal release counter while in the `0.x` line. Only go to a minor bump (`0.2.x → 0.3.0`) when the user explicitly says so. Same rule for `0.x → 1.0` — wait for the user.
+
 The script blocks if:
 - `gh` is not installed or not authenticated (`gh auth login`)
 - The working tree has uncommitted changes
