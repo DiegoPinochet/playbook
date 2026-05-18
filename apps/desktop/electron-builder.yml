@@ -26,6 +26,18 @@ mac:
   identity: null
 dmg:
   writeUpdateInfo: false
+win:
+  icon: build/icon.ico
+  target:
+    - target: nsis
+      arch:
+        - x64
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  shortcutName: Playbook
+  uninstallDisplayName: Playbook
 publish:
   provider: github
   owner: DiegoPinochet
