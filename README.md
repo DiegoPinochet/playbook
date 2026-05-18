@@ -115,11 +115,26 @@ The split is deliberate: `business-logic` and `file-system` have no React, no El
 
 ## Getting started (users)
 
-> The app is currently built and tested on **macOS Apple Silicon**. Other platforms work in dev but aren't packaged yet.
+Playbook ships as a desktop app for macOS (Apple Silicon) and Windows (x64).
+
+### macOS
 
 1. Grab the latest `Playbook-<version>-arm64.dmg` from the [Releases](https://github.com/DiegoPinochet/playbook/releases) page.
 2. Open the dmg and drag **Playbook** into Applications.
-3. First launch: right-click the app and choose **Open**. The build is unsigned, so macOS Gatekeeper will warn once and then remember the choice.
+3. The build is unsigned, so macOS marks it as quarantined on download. Clear the flag once from a terminal:
+
+   ```bash
+   xattr -dr com.apple.quarantine /Applications/Playbook.app
+   ```
+
+   Then launch Playbook normally from Applications or Spotlight.
+4. On first run, pick a platform folder. That's where all your data will live.
+
+### Windows
+
+1. Grab the latest `Playbook-<version>-x64.exe` from the [Releases](https://github.com/DiegoPinochet/playbook/releases) page.
+2. Double-click the installer. The build is unsigned, so Windows SmartScreen will warn "Windows protected your PC" — click **More info** → **Run anyway**.
+3. Choose an install location (per-user; no admin rights required) and finish the wizard.
 4. On first run, pick a platform folder. That's where all your data will live.
 
 ## Getting started (developers)
