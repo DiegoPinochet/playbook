@@ -9,6 +9,25 @@ const APP_DIR = resolve(__dirname, "..");
 const REPO_ROOT = resolve(APP_DIR, "../..");
 const WORKSPACE_LINK_DIR = resolve(APP_DIR, "node_modules", "@playbook");
 
+const isCI = process.env.CI === "true";
+
+function parsePlatform(argv) {
+  let platform = "mac";
+  for (const arg of argv) {
+    if (arg.startsWith("--platform=")) {
+      platform = arg.slice("--platform=".length);
+    } else if (arg === "--platform") {
+      fail("Use --platform=mac or --platform=win (with =), not a separate arg");
+    }
+  }
+  if (platform !== "mac" && platform !== "win") {
+    fail(`Invalid --platform: ${platform}. Expected mac or win.`);
+  }
+  return platform;
+}
+
+const platform = parsePlatform(process.argv.slice(2));
+
 function run(cmd, args, opts = {}) {
   console.log(`\n$ ${cmd} ${args.join(" ")}`);
   execFileSync(cmd, args, { stdio: "inherit", cwd: APP_DIR, ...opts });
@@ -24,35 +43,44 @@ function fail(msg) {
 }
 
 // 1. Pre-flight
-try {
-  out("gh", ["--version"]);
-} catch {
-  fail("gh CLI not found. Install with: brew install gh");
-}
-
 let token;
-try {
-  token = out("gh", ["auth", "token"]);
-} catch {
-  fail("gh is not authenticated. Run: gh auth login");
+if (isCI) {
+  token = process.env.GH_TOKEN || process.env.GITHUB_TOKEN;
+  if (!token) fail("CI mode but neither GH_TOKEN nor GITHUB_TOKEN is set");
+} else {
+  try {
+    out("gh", ["--version"]);
+  } catch {
+    fail("gh CLI not found. Install with: brew install gh");
+  }
+  try {
+    token = out("gh", ["auth", "token"]);
+  } catch {
+    fail("gh is not authenticated. Run: gh auth login");
+  }
+  if (!token) fail("Empty gh auth token");
 }
-if (!token) fail("Empty gh auth token");
 
-const status = out("git", ["status", "--porcelain"], { cwd: REPO_ROOT });
-if (status) {
-  fail(`Working tree is not clean. Commit or stash before releasing:\n${status}`);
+if (!isCI) {
+  const status = out("git", ["status", "--porcelain"], { cwd: REPO_ROOT });
+  if (status) {
+    fail(`Working tree is not clean. Commit or stash before releasing:\n${status}`);
+  }
 }
 
 const pkg = JSON.parse(readFileSync(resolve(APP_DIR, "package.json"), "utf8"));
 const version = pkg.version;
 const tag = `v${version}`;
-console.log(`▶ Releasing Playbook ${tag} (Mac arm64)`);
+const archLabel = platform === "mac" ? "Mac arm64" : "Windows x64";
+console.log(`▶ Releasing Playbook ${tag} (${archLabel})`);
 
-const existingTags = out("git", ["ls-remote", "--tags", "origin"], { cwd: REPO_ROOT });
-if (existingTags.includes(`refs/tags/${tag}`)) {
-  fail(
-    `Tag ${tag} already exists on origin. Bump apps/desktop/package.json version and try again.`
-  );
+if (!isCI) {
+  const existingTags = out("git", ["ls-remote", "--tags", "origin"], { cwd: REPO_ROOT });
+  if (existingTags.includes(`refs/tags/${tag}`)) {
+    fail(
+      `Tag ${tag} already exists on origin. Bump apps/desktop/package.json version and try again.`
+    );
+  }
 }
 
 // 2. Build the renderer/main/preload bundles
@@ -70,7 +98,12 @@ if (existsSync(WORKSPACE_LINK_DIR)) {
 }
 
 try {
-  run("pnpm", ["exec", "electron-builder", "--mac", "--arm64", "--publish", "always"], {
+  const builderArgs =
+    platform === "mac"
+      ? ["--mac", "--arm64", "--publish", "always"]
+      : ["--win", "--x64", "--publish", "always"];
+
+  run("pnpm", ["exec", "electron-builder", ...builderArgs], {
     env: { ...process.env, GH_TOKEN: token },
   });
 } finally {
