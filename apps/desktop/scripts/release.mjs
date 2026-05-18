@@ -11,6 +11,20 @@ const WORKSPACE_LINK_DIR = resolve(APP_DIR, "node_modules", "@playbook");
 
 const isCI = process.env.CI === "true";
 
+function run(cmd, args, opts = {}) {
+  console.log(`\n$ ${cmd} ${args.join(" ")}`);
+  execFileSync(cmd, args, { stdio: "inherit", cwd: APP_DIR, ...opts });
+}
+
+function out(cmd, args, opts = {}) {
+  return execFileSync(cmd, args, { encoding: "utf8", cwd: APP_DIR, ...opts }).trim();
+}
+
+function fail(msg) {
+  console.error(`\n✖ ${msg}`);
+  process.exit(1);
+}
+
 function parsePlatform(argv) {
   let platform = "mac";
   for (const arg of argv) {
@@ -27,20 +41,6 @@ function parsePlatform(argv) {
 }
 
 const platform = parsePlatform(process.argv.slice(2));
-
-function run(cmd, args, opts = {}) {
-  console.log(`\n$ ${cmd} ${args.join(" ")}`);
-  execFileSync(cmd, args, { stdio: "inherit", cwd: APP_DIR, ...opts });
-}
-
-function out(cmd, args, opts = {}) {
-  return execFileSync(cmd, args, { encoding: "utf8", cwd: APP_DIR, ...opts }).trim();
-}
-
-function fail(msg) {
-  console.error(`\n✖ ${msg}`);
-  process.exit(1);
-}
 
 // 1. Pre-flight
 let token;
