@@ -36,7 +36,7 @@ nsis:
   oneClick: false
   perMachine: false
   allowToChangeInstallationDirectory: true
-  shortcutName: Playbook
+  runAfterFinish: false
   uninstallDisplayName: Playbook
 publish:
   provider: github
