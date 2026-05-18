@@ -10,14 +10,20 @@ const REPO_ROOT = resolve(APP_DIR, "../..");
 const WORKSPACE_LINK_DIR = resolve(APP_DIR, "node_modules", "@playbook");
 
 const isCI = process.env.CI === "true";
+const isWindows = process.platform === "win32";
 
 function run(cmd, args, opts = {}) {
   console.log(`\n$ ${cmd} ${args.join(" ")}`);
-  execFileSync(cmd, args, { stdio: "inherit", cwd: APP_DIR, ...opts });
+  execFileSync(cmd, args, { stdio: "inherit", cwd: APP_DIR, shell: isWindows, ...opts });
 }
 
 function out(cmd, args, opts = {}) {
-  return execFileSync(cmd, args, { encoding: "utf8", cwd: APP_DIR, ...opts }).trim();
+  return execFileSync(cmd, args, {
+    encoding: "utf8",
+    cwd: APP_DIR,
+    shell: isWindows,
+    ...opts,
+  }).trim();
 }
 
 function fail(msg) {
@@ -113,6 +119,7 @@ try {
       execFileSync("pnpm", ["install", "--prefer-offline"], {
         stdio: "inherit",
         cwd: REPO_ROOT,
+        shell: isWindows,
       });
     } catch (err) {
       console.error("⚠ Failed to restore symlinks. Run `pnpm install` manually.", err);
