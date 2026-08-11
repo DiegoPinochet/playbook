@@ -11,6 +11,10 @@ files:
   - "!**/*.tsbuildinfo"
 asarUnpack:
   - "node_modules/ffmpeg-static/**"
+# No dependency ships a node-gyp addon (ffmpeg-static is a plain executable), so there is
+# nothing to rebuild against Electron's ABI. Leaving this on makes @electron/rebuild walk
+# pnpm's hoisted symlink farm, where it dies on ENOENT stat'ing @emnapi/runtime.
+npmRebuild: false
 mac:
   category: public.app-category.video
   icon: build/icon.icns
