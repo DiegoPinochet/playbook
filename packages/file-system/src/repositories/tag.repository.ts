@@ -5,6 +5,7 @@ type TagRecord = {
   id: string;
   label: string;
   color: string;
+  group?: string;
   isDefault: boolean;
   createdAt: string;
 };

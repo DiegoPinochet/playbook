@@ -1,9 +1,10 @@
 import type { Sport } from "../sport.entity";
+import type { TagGroup } from "../../clips/tag-group";
 import { RUGBY_PRESET } from "./rugby.preset";
 import { FOOTBALL_PRESET } from "./football.preset";
 import { FIELD_HOCKEY_PRESET } from "./field-hockey.preset";
 
-export type PresetTag = { id: string; label: string; color: string };
+export type PresetTag = { id: string; label: string; color: string; group: TagGroup };
 
 export type SportPreset = {
   sport: Sport;

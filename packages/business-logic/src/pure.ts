@@ -3,6 +3,7 @@ export * from "./matches/match.entity";
 export * from "./clips/clip.entity";
 export * from "./clips/tag.entity";
 export * from "./clips/tag-color";
+export * from "./clips/tag-group";
 export * from "./players/player.entity";
 export * from "./annotations/annotation.entity";
 export * from "./settings/settings.entity";

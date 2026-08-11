@@ -1,5 +1,6 @@
 import { tagRepository } from "@playbook/file-system";
 import type { TagEntity } from "../tag.entity";
+import { tagGroupSchema } from "../tag-group";
 import { getPlatformSportUseCase } from "../../sports/use-cases/get-platform-sport.use-case";
 import { SPORT_PRESETS } from "../../sports/presets";
 
@@ -13,13 +14,16 @@ export async function listTagsUseCase(platformFolder: string): Promise<TagEntity
     id: t.id,
     label: t.label,
     color: t.color,
+    group: t.group,
     isDefault: true,
     createdAt: PRESET_CREATED_AT,
   }));
 
   const presetIds = new Set(presets.map((t) => t.id));
   const customs = await tagRepository.list(platformFolder);
-  const visibleCustoms = customs.filter((c) => !presetIds.has(c.id));
+  const visibleCustoms: TagEntity[] = customs
+    .filter((c) => !presetIds.has(c.id))
+    .map((c) => ({ ...c, group: tagGroupSchema.catch("custom").parse(c.group) }));
 
   return [...presets, ...visibleCustoms];
 }

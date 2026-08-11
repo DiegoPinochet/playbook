@@ -15,6 +15,7 @@ export * from "./matches/use-cases/delete-match.use-case";
 export * from "./clips/clip.entity";
 export * from "./clips/tag.entity";
 export * from "./clips/tag-color";
+export * from "./clips/tag-group";
 export * from "./clips/use-cases/create-clip.use-case";
 export * from "./clips/use-cases/update-clip.use-case";
 export * from "./clips/use-cases/list-clips.use-case";

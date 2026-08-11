@@ -1,9 +1,11 @@
 import { z } from "zod";
+import { tagGroupSchema } from "./tag-group";
 
 export const tagSchema = z.object({
   id: z.string().regex(/^[a-z0-9-]+$/),
   label: z.string().min(1).max(40),
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+  group: tagGroupSchema.default("custom"),
   isDefault: z.boolean(),
   createdAt: z.string().datetime(),
 });
