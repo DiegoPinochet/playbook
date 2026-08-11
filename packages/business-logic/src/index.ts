@@ -39,3 +39,4 @@ export * from "./annotations/use-cases/delete-annotation.use-case";
 export * from "./settings/settings.entity";
 export * from "./settings/use-cases/get-settings.use-case";
 export * from "./settings/use-cases/set-platform-folder.use-case";
+export * from "./settings/use-cases/set-tour-enabled.use-case";

@@ -4,6 +4,7 @@ import * as paths from "../paths";
 type SettingsRecord = {
   platformFolder: string | null;
   theme: "light" | "dark" | "system";
+  tourEnabled?: boolean;
 };
 
 export const settingsRepository = {

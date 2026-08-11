@@ -57,6 +57,7 @@ export interface PlaybookApi {
     get(): Promise<SettingsEntity>;
     pickPlatformFolder(): Promise<string | null>;
     setPlatformFolder(folder: string): Promise<SettingsEntity>;
+    setTourEnabled(enabled: boolean): Promise<SettingsEntity>;
   };
   opponents: {
     list(platform: string): Promise<OpponentEntity[]>;

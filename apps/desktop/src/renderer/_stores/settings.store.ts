@@ -8,9 +8,10 @@ type SettingsStore = {
   load: () => Promise<void>;
   pickAndSetPlatformFolder: () => Promise<string | null>;
   setPlatformSport: (sport: Sport) => Promise<void>;
+  setTourEnabled: (enabled: boolean) => Promise<void>;
 };
 
-const DEFAULT: SettingsEntity = { platformFolder: null, theme: "system" };
+const DEFAULT: SettingsEntity = { platformFolder: null, theme: "system", tourEnabled: true };
 
 export const useSettingsStore = create<SettingsStore>((set, get) => ({
   settings: DEFAULT,
@@ -36,5 +37,9 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
     if (!platform) throw new Error("Pick a platform folder first");
     const next = await window.api.sports.setPlatformSport(platform, sport);
     set({ platformSport: next });
+  },
+  setTourEnabled: async (enabled) => {
+    const settings = await window.api.settings.setTourEnabled(enabled);
+    set({ settings });
   },
 }));

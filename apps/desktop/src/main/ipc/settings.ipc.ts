@@ -2,6 +2,7 @@ import { dialog, BrowserWindow } from "electron";
 import {
   getSettingsUseCase,
   setPlatformFolderUseCase,
+  setTourEnabledUseCase,
   type SettingsEntity,
 } from "@playbook/business-logic";
 import { handle, userDataDir } from "./_helpers";
@@ -23,5 +24,9 @@ export function registerSettingsHandlers(): void {
 
   handle<[string], SettingsEntity>("settings.setPlatformFolder", async (_e, platformFolder) => {
     return setPlatformFolderUseCase(userDataDir(), platformFolder);
+  });
+
+  handle<[boolean], SettingsEntity>("settings.setTourEnabled", async (_e, tourEnabled) => {
+    return setTourEnabledUseCase(userDataDir(), tourEnabled);
   });
 }

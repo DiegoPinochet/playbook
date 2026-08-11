@@ -13,6 +13,7 @@ const api = {
     get: () => invoke<unknown>("settings.get"),
     pickPlatformFolder: () => invoke<string | null>("settings.pickPlatformFolder"),
     setPlatformFolder: (folder: string) => invoke<unknown>("settings.setPlatformFolder", folder),
+    setTourEnabled: (enabled: boolean) => invoke<unknown>("settings.setTourEnabled", enabled),
   },
   opponents: {
     list: (platform: string) => invoke<unknown[]>("opponents.list", platform),
