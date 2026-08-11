@@ -25,6 +25,7 @@ import {
   TooltipTrigger,
 } from "@playbook/ui";
 import type { ClipEntity, MatchEntity, OpponentEntity, TagEntity } from "@playbook/business-logic";
+import { groupTags } from "@playbook/business-logic/pure";
 import { AppShell } from "@/_components/app-shell";
 import { Timeline, formatTime } from "@/_components/timeline";
 import { ClipEditorDialog } from "@/_components/clip-editor-dialog";
@@ -237,28 +238,35 @@ export function MatchEditorPage() {
           <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             Tags
           </div>
-          <div className="mt-2 flex flex-col gap-1 overflow-auto">
-            {tags.map((t) => {
-              const count = clips.filter((c) => c.tagIds.includes(t.id)).length;
-              const active = filterTagIds.includes(t.id);
-              return (
-                <button
-                  key={t.id}
-                  type="button"
-                  onClick={() =>
-                    setFilterTagIds((prev) =>
-                      prev.includes(t.id) ? prev.filter((x) => x !== t.id) : [...prev, t.id]
-                    )
-                  }
-                  className="flex items-center gap-2 rounded-md px-2 py-1 text-left text-xs hover:bg-accent data-[active=true]:bg-accent"
-                  data-active={active}
-                >
-                  <span className="size-2 rounded-full" style={{ backgroundColor: t.color }} />
-                  <span className="flex-1 truncate">{t.label}</span>
-                  <span className="text-muted-foreground">{count}</span>
-                </button>
-              );
-            })}
+          <div className="mt-2 flex flex-col gap-2 overflow-auto">
+            {groupTags(tags).map(({ group, label, tags: groupedTags }) => (
+              <div key={group}>
+                <div className="px-2 pb-0.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70">
+                  {label}
+                </div>
+                {groupedTags.map((t) => {
+                  const count = clips.filter((c) => c.tagIds.includes(t.id)).length;
+                  const active = filterTagIds.includes(t.id);
+                  return (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() =>
+                        setFilterTagIds((prev) =>
+                          prev.includes(t.id) ? prev.filter((x) => x !== t.id) : [...prev, t.id]
+                        )
+                      }
+                      className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-xs hover:bg-accent data-[active=true]:bg-accent"
+                      data-active={active}
+                    >
+                      <span className="size-2 rounded-full" style={{ backgroundColor: t.color }} />
+                      <span className="flex-1 truncate">{t.label}</span>
+                      <span className="text-muted-foreground">{count}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            ))}
           </div>
         </aside>
 
@@ -468,8 +476,8 @@ export function MatchEditorPage() {
           setInSec(null);
           setOutSec(null);
         }}
-        onCreateCustomTag={async (label, color) => {
-          await createCustomTag(ctx, label, color);
+        onCreateCustomTag={async (label, color, group) => {
+          await createCustomTag(ctx, label, color, group);
         }}
       />
 
@@ -492,8 +500,8 @@ export function MatchEditorPage() {
           toast.success("Clip updated");
           setEditingClip(null);
         }}
-        onCreateCustomTag={async (label, color) => {
-          await createCustomTag(ctx, label, color);
+        onCreateCustomTag={async (label, color, group) => {
+          await createCustomTag(ctx, label, color, group);
         }}
       />
     </AppShell>

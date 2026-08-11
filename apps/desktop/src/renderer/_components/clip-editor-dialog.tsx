@@ -8,13 +8,24 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
   Input,
   Label,
   Textarea,
   toast,
 } from "@playbook/ui";
-import type { ClipEntity, TagEntity } from "@playbook/business-logic/pure";
-import { TAG_COLOR_PALETTE, DEFAULT_TAG_COLOR } from "@playbook/business-logic/pure";
+import type { ClipEntity, TagEntity, TagGroup } from "@playbook/business-logic/pure";
+import {
+  TAG_COLOR_PALETTE,
+  DEFAULT_TAG_COLOR,
+  DEFAULT_TAG_GROUP,
+  TAG_GROUP_LABELS,
+  TAG_GROUP_ORDER,
+  groupTags,
+} from "@playbook/business-logic/pure";
 import { formatTime } from "./timeline";
 
 export type ClipEditorSubmit = {
@@ -43,7 +54,7 @@ export function ClipEditorDialog({
   mode: ClipEditorMode;
   tags: TagEntity[];
   onSubmit: (input: ClipEditorSubmit) => Promise<void>;
-  onCreateCustomTag: (label: string, color: string) => Promise<void>;
+  onCreateCustomTag: (label: string, color: string, group: TagGroup) => Promise<void>;
 }) {
   const isEdit = mode.kind === "edit";
   const initialStart = mode.kind === "edit" ? mode.clip.startSec : mode.startSec;
@@ -55,6 +66,7 @@ export function ClipEditorDialog({
   const [playersRaw, setPlayersRaw] = useState("");
   const [newTagLabel, setNewTagLabel] = useState("");
   const [newTagColor, setNewTagColor] = useState<string>(DEFAULT_TAG_COLOR);
+  const [newTagGroup, setNewTagGroup] = useState<TagGroup>(DEFAULT_TAG_GROUP);
 
   useEffect(() => {
     if (!open) return;
@@ -71,6 +83,7 @@ export function ClipEditorDialog({
     }
     setNewTagLabel("");
     setNewTagColor(DEFAULT_TAG_COLOR);
+    setNewTagGroup(DEFAULT_TAG_GROUP);
   }, [open, mode]);
 
   function toggleTag(id: string) {
@@ -80,9 +93,10 @@ export function ClipEditorDialog({
   async function handleNewTag() {
     if (!newTagLabel.trim()) return;
     try {
-      await onCreateCustomTag(newTagLabel.trim(), newTagColor);
+      await onCreateCustomTag(newTagLabel.trim(), newTagColor, newTagGroup);
       setNewTagLabel("");
       setNewTagColor(DEFAULT_TAG_COLOR);
+      setNewTagGroup(DEFAULT_TAG_GROUP);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not create tag");
     }
@@ -137,27 +151,36 @@ export function ClipEditorDialog({
           </div>
           <div>
             <Label>Tags</Label>
-            <div className="mt-1 flex flex-wrap gap-1.5">
-              {tags.map((tag) => {
-                const active = tagIds.includes(tag.id);
-                return (
-                  <button
-                    key={tag.id}
-                    type="button"
-                    onClick={() => toggleTag(tag.id)}
-                    className="inline-flex items-center gap-1.5 rounded-md border border-border px-2 py-0.5 text-xs transition-colors data-[active=true]:border-transparent data-[active=true]:text-white"
-                    data-active={active}
-                    style={active ? { backgroundColor: tag.color } : {}}
-                  >
-                    <span
-                      className="size-2 rounded-full"
-                      style={{ backgroundColor: tag.color }}
-                      aria-hidden
-                    />
-                    {tag.label}
-                  </button>
-                );
-              })}
+            <div className="mt-1 space-y-2.5">
+              {groupTags(tags).map(({ group, label, tags: groupedTags }) => (
+                <div key={group}>
+                  <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    {label}
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {groupedTags.map((tag) => {
+                      const active = tagIds.includes(tag.id);
+                      return (
+                        <button
+                          key={tag.id}
+                          type="button"
+                          onClick={() => toggleTag(tag.id)}
+                          className="inline-flex items-center gap-1.5 rounded-md border border-border px-2 py-0.5 text-xs transition-colors data-[active=true]:border-transparent data-[active=true]:text-white"
+                          data-active={active}
+                          style={active ? { backgroundColor: tag.color } : {}}
+                        >
+                          <span
+                            className="size-2 rounded-full"
+                            style={{ backgroundColor: tag.color }}
+                            aria-hidden
+                          />
+                          {tag.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
             </div>
             <div className="mt-2 space-y-2">
               <div className="flex gap-2">
@@ -172,6 +195,20 @@ export function ClipEditorDialog({
                     }
                   }}
                 />
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="shrink-0 gap-1.5 font-normal">
+                      {TAG_GROUP_LABELS[newTagGroup]}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {TAG_GROUP_ORDER.map((group) => (
+                      <DropdownMenuItem key={group} onSelect={() => setNewTagGroup(group)}>
+                        {TAG_GROUP_LABELS[group]}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 <Button variant="outline" onClick={handleNewTag} disabled={!newTagLabel.trim()}>
                   Add
                 </Button>

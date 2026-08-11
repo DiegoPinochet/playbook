@@ -1,5 +1,11 @@
 import { create } from "zustand";
-import type { ClipCreateInput, ClipEntity, ClipUpdateInput, TagEntity } from "@playbook/business-logic";
+import type {
+  ClipCreateInput,
+  ClipEntity,
+  ClipUpdateInput,
+  TagEntity,
+  TagGroup,
+} from "@playbook/business-logic";
 
 type Ctx = { platform: string; opponentSlug: string; matchSlug: string };
 
@@ -11,7 +17,12 @@ type ClipsStore = {
   create: (ctx: Ctx, input: ClipCreateInput) => Promise<ClipEntity>;
   update: (ctx: Ctx, input: ClipUpdateInput) => Promise<ClipEntity>;
   remove: (ctx: Ctx, clipId: string) => Promise<void>;
-  createCustomTag: (ctx: Ctx, label: string, color?: string) => Promise<TagEntity>;
+  createCustomTag: (
+    ctx: Ctx,
+    label: string,
+    color?: string,
+    group?: TagGroup
+  ) => Promise<TagEntity>;
 };
 
 export const useClipsStore = create<ClipsStore>((set, get) => ({
@@ -44,8 +55,8 @@ export const useClipsStore = create<ClipsStore>((set, get) => ({
     await window.api.clips.delete(ctx.platform, ctx.opponentSlug, ctx.matchSlug, clipId);
     set({ clips: get().clips.filter((c) => c.id !== clipId) });
   },
-  createCustomTag: async (ctx, label, color) => {
-    const tag = await window.api.clips.createCustomTag(ctx.platform, { label, color });
+  createCustomTag: async (ctx, label, color, group) => {
+    const tag = await window.api.clips.createCustomTag(ctx.platform, { label, color, group });
     set({ tags: [...get().tags, tag] });
     return tag;
   },
