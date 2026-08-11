@@ -65,6 +65,7 @@ export function NotesPanel() {
 
   return (
     <aside
+      data-tour="notes-panel"
       className="relative flex shrink-0 flex-col border-l border-border bg-sidebar"
       style={{ width }}
     >

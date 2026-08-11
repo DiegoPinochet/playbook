@@ -32,6 +32,7 @@ import { ClipEditorDialog } from "@/_components/clip-editor-dialog";
 import { useSettingsStore } from "@/_stores/settings.store";
 import { useOpponentsStore } from "@/_stores/opponents.store";
 import { useClipsStore } from "@/_stores/clips.store";
+import { useTourStore } from "@/_stores/tour.store";
 
 export function MatchEditorPage() {
   const { opponentSlug, matchSlug } = useParams<{
@@ -87,6 +88,16 @@ export function MatchEditorPage() {
     });
   }, [ctx, loadClips]);
 
+  const startTour = useTourStore((s) => s.start);
+
+  useEffect(() => {
+    // Wait for the match and tags to resolve — the tour's anchors must exist before joyride
+    // measures them. start() no-ops while running, and finishing clears tourEnabled, so a
+    // dismissed tour cannot restart itself.
+    if (!settings.tourEnabled || !match || tags.length === 0) return;
+    startTour();
+  }, [settings.tourEnabled, match, tags.length, startTour]);
+
   const videoSrc = useMemo(() => {
     if (!ctx || !match) return "";
     const absolute = `${ctx.platform}/${ctx.opponentSlug}/${ctx.matchSlug}/${match.videoFileName}`;
@@ -119,11 +130,10 @@ export function MatchEditorPage() {
         togglePlay();
       } else if (e.code === "KeyI") {
         e.preventDefault();
-        setInSec(live.currentSec);
-        setOutSec(null);
+        markIn(live.currentSec);
       } else if (e.code === "KeyO") {
         e.preventDefault();
-        setOutSec(live.currentSec);
+        markOut(live.currentSec);
       } else if (e.code === "ArrowLeft") {
         e.preventDefault();
         seekBy(-10);
@@ -142,7 +152,7 @@ export function MatchEditorPage() {
         live.outSec > live.inSec
       ) {
         e.preventDefault();
-        setDialogOpen(true);
+        openClipDialog();
       }
     }
     window.addEventListener("keydown", onKey);
@@ -154,6 +164,22 @@ export function MatchEditorPage() {
     if (!v) return;
     if (v.paused) void v.play();
     else v.pause();
+  }
+
+  function markIn(sec: number) {
+    setInSec(sec);
+    setOutSec(null);
+    useTourStore.getState().signal("in-marked");
+  }
+
+  function markOut(sec: number) {
+    setOutSec(sec);
+    useTourStore.getState().signal("out-marked");
+  }
+
+  function openClipDialog() {
+    setDialogOpen(true);
+    useTourStore.getState().signal("dialog-opened");
   }
 
   function seekBy(delta: number) {
@@ -311,7 +337,10 @@ export function MatchEditorPage() {
               />
             )}
           </div>
-          <div className="flex items-center gap-2 border-t border-border bg-card/40 px-3 py-2">
+          <div
+            data-tour="transport"
+            className="flex items-center gap-2 border-t border-border bg-card/40 px-3 py-2"
+          >
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button size="sm" variant="ghost" className="gap-1" onClick={() => seekBy(-10)}>
@@ -342,10 +371,8 @@ export function MatchEditorPage() {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => {
-                      setInSec(currentSec);
-                      setOutSec(null);
-                    }}
+                    data-tour="mark-in"
+                    onClick={() => markIn(currentSec)}
                   >
                     Mark in (I)
                   </Button>
@@ -354,7 +381,12 @@ export function MatchEditorPage() {
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button size="sm" variant="outline" onClick={() => setOutSec(currentSec)}>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    data-tour="mark-out"
+                    onClick={() => markOut(currentSec)}
+                  >
                     Mark out (O)
                   </Button>
                 </TooltipTrigger>
@@ -362,8 +394,9 @@ export function MatchEditorPage() {
               </Tooltip>
               <Button
                 size="sm"
+                data-tour="add-clip"
                 disabled={inSec === null || outSec === null || outSec <= inSec}
-                onClick={() => setDialogOpen(true)}
+                onClick={openClipDialog}
               >
                 <ListPlus className="size-4" /> + Clip
               </Button>
@@ -472,6 +505,7 @@ export function MatchEditorPage() {
             matchId: match?.id ?? "",
           });
           toast.success("Clip saved");
+          useTourStore.getState().signal("clip-saved");
           setDialogOpen(false);
           setInSec(null);
           setOutSec(null);

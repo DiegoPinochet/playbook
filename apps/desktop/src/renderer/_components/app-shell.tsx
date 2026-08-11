@@ -1,8 +1,9 @@
-import { useEffect, type ReactNode } from "react";
+import { useCallback, useEffect, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { NotebookPen } from "lucide-react";
 import { Button, cn, Tooltip, TooltipContent, TooltipTrigger } from "@playbook/ui";
 import { useNotesStore } from "@/_stores/notes.store";
+import { useTourStore } from "@/_stores/tour.store";
 import { NotesPanel } from "./notes-panel";
 import appIconUrl from "@/assets/app-icon.png";
 
@@ -19,6 +20,11 @@ export function AppShell({
 }) {
   const { open: notesOpen, toggle: toggleNotes } = useNotesStore();
 
+  const handleToggleNotes = useCallback(() => {
+    if (!useNotesStore.getState().open) useTourStore.getState().signal("notes-opened");
+    toggleNotes();
+  }, [toggleNotes]);
+
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       const target = e.target as HTMLElement | null;
@@ -26,12 +32,12 @@ export function AppShell({
       if (tag === "INPUT" || tag === "TEXTAREA" || target?.isContentEditable) return;
       if ((e.metaKey || e.ctrlKey) && e.code === "KeyJ") {
         e.preventDefault();
-        toggleNotes();
+        handleToggleNotes();
       }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [toggleNotes]);
+  }, [handleToggleNotes]);
 
   return (
     <div className="flex h-full flex-col bg-background text-foreground">
@@ -68,8 +74,9 @@ export function AppShell({
             <TooltipTrigger asChild>
               <Button
                 size="icon-sm"
+                data-tour="notes-toggle"
                 variant={notesOpen ? "secondary" : "ghost"}
-                onClick={toggleNotes}
+                onClick={handleToggleNotes}
                 aria-label="Toggle notes"
                 aria-pressed={notesOpen}
               >

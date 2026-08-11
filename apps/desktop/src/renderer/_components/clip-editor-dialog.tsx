@@ -26,6 +26,7 @@ import {
   TAG_GROUP_ORDER,
   groupTags,
 } from "@playbook/business-logic/pure";
+import { useTourStore } from "@/_stores/tour.store";
 import { formatTime } from "./timeline";
 
 export type ClipEditorSubmit = {
@@ -56,6 +57,7 @@ export function ClipEditorDialog({
   onSubmit: (input: ClipEditorSubmit) => Promise<void>;
   onCreateCustomTag: (label: string, color: string, group: TagGroup) => Promise<void>;
 }) {
+  const tourRunning = useTourStore((s) => s.running);
   const isEdit = mode.kind === "edit";
   const initialStart = mode.kind === "edit" ? mode.clip.startSec : mode.startSec;
   const initialEnd = mode.kind === "edit" ? mode.clip.endSec : mode.endSec;
@@ -87,6 +89,7 @@ export function ClipEditorDialog({
   }, [open, mode]);
 
   function toggleTag(id: string) {
+    if (!tagIds.includes(id)) useTourStore.getState().signal("tag-selected");
     setTagIds((prev) => (prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]));
   }
 
@@ -125,8 +128,15 @@ export function ClipEditorDialog({
     title.trim().length > 0;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl">
+    <Dialog open={open} onOpenChange={onOpenChange} modal={!tourRunning}>
+      {/* While the tour runs the dialog is non-modal, so Radix does not mark the tour card
+          aria-hidden and pointer-events:none. Outside interaction still must not close it. */}
+      <DialogContent
+        className="max-w-xl"
+        onInteractOutside={(e) => {
+          if (tourRunning) e.preventDefault();
+        }}
+      >
         <DialogHeader>
           <DialogTitle>{isEdit ? "Edit clip" : "New clip"}</DialogTitle>
           <DialogDescription>
@@ -136,7 +146,7 @@ export function ClipEditorDialog({
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
-          <div>
+          <div data-tour="clip-title">
             <Label htmlFor="c-title">Title</Label>
             <Input id="c-title" value={title} onChange={(e) => setTitle(e.target.value)} autoFocus />
           </div>
@@ -149,7 +159,7 @@ export function ClipEditorDialog({
               onChange={(e) => setDescription(e.target.value)}
             />
           </div>
-          <div>
+          <div data-tour="clip-tags">
             <Label>Tags</Label>
             <div className="mt-1 space-y-2.5">
               {groupTags(tags).map(({ group, label, tags: groupedTags }) => (
@@ -231,7 +241,7 @@ export function ClipEditorDialog({
               </div>
             </div>
           </div>
-          <div>
+          <div data-tour="clip-players">
             <Label htmlFor="c-players">Player numbers</Label>
             <Input
               id="c-players"
@@ -263,7 +273,7 @@ export function ClipEditorDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button disabled={!valid} onClick={submit}>
+          <Button data-tour="clip-save" disabled={!valid} onClick={submit}>
             {isEdit ? "Save changes" : "Save clip"}
           </Button>
         </DialogFooter>
