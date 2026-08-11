@@ -29,7 +29,14 @@ export function TourGuide() {
       return;
     }
     if (type === EVENTS.STEP_AFTER) {
-      setStepIndex(action === ACTIONS.PREV ? index - 1 : index + 1);
+      if (action === ACTIONS.PREV) {
+        setStepIndex(index - 1);
+        return;
+      }
+      // In controlled mode Joyride never ends the tour on its own — it emits no tour:end and
+      // waits on our stepIndex — so the last step's primary button is ours to act on.
+      if (index >= TOUR_STEPS.length - 1) finish();
+      else setStepIndex(index + 1);
     }
   }
 

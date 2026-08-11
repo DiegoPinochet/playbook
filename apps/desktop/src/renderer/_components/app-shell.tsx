@@ -1,4 +1,4 @@
-import { useCallback, useEffect, type ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { NotebookPen } from "lucide-react";
 import { Button, cn, Tooltip, TooltipContent, TooltipTrigger } from "@playbook/ui";
@@ -19,11 +19,7 @@ export function AppShell({
   children: ReactNode;
 }) {
   const { open: notesOpen, toggle: toggleNotes } = useNotesStore();
-
-  const handleToggleNotes = useCallback(() => {
-    if (!useNotesStore.getState().open) useTourStore.getState().signal("notes-opened");
-    toggleNotes();
-  }, [toggleNotes]);
+  const tourStepIndex = useTourStore((s) => s.stepIndex);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -32,12 +28,19 @@ export function AppShell({
       if (tag === "INPUT" || tag === "TEXTAREA" || target?.isContentEditable) return;
       if ((e.metaKey || e.ctrlKey) && e.code === "KeyJ") {
         e.preventDefault();
-        handleToggleNotes();
+        toggleNotes();
       }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [handleToggleNotes]);
+  }, [toggleNotes]);
+
+  // Satisfy the tour's notes step from state rather than from the click, so a panel the user
+  // already had open (it persists in localStorage) doesn't leave the tour waiting forever.
+  // The store ignores signals the current step isn't waiting for, so this is a no-op otherwise.
+  useEffect(() => {
+    if (notesOpen) useTourStore.getState().signal("notes-opened");
+  }, [notesOpen, tourStepIndex]);
 
   return (
     <div className="flex h-full flex-col bg-background text-foreground">
@@ -76,7 +79,7 @@ export function AppShell({
                 size="icon-sm"
                 data-tour="notes-toggle"
                 variant={notesOpen ? "secondary" : "ghost"}
-                onClick={handleToggleNotes}
+                onClick={toggleNotes}
                 aria-label="Toggle notes"
                 aria-pressed={notesOpen}
               >
