@@ -23,7 +23,7 @@ import {
   DEFAULT_TAG_COLOR,
   DEFAULT_TAG_GROUP,
   TAG_GROUP_LABELS,
-  TAG_GROUP_ORDER,
+  TAG_GROUPS,
   groupTags,
 } from "@playbook/business-logic/pure";
 import { useTourStore } from "@/_stores/tour.store";
@@ -212,7 +212,7 @@ export function ClipEditorDialog({
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    {TAG_GROUP_ORDER.map((group) => (
+                    {TAG_GROUPS.map((group) => (
                       <DropdownMenuItem key={group} onSelect={() => setNewTagGroup(group)}>
                         {TAG_GROUP_LABELS[group]}
                       </DropdownMenuItem>

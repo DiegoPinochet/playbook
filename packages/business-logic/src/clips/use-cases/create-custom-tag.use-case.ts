@@ -1,7 +1,7 @@
 import { tagRepository, slugify } from "@playbook/file-system";
 import { tagSchema, type TagEntity } from "../tag.entity";
 import { DEFAULT_TAG_COLOR, isPaletteColor } from "../tag-color";
-import { tagGroupSchema, type TagGroup } from "../tag-group";
+import { DEFAULT_TAG_GROUP, tagGroupSchema, type TagGroup } from "../tag-group";
 import { getPlatformSportUseCase } from "../../sports/use-cases/get-platform-sport.use-case";
 import { presetTagIds } from "../../sports/presets";
 
@@ -33,7 +33,7 @@ export async function createCustomTagUseCase(
     throw new Error("Tag color must be one of the palette swatches");
   }
 
-  const group = input.group ? tagGroupSchema.parse(input.group) : "custom";
+  const group = input.group ? tagGroupSchema.parse(input.group) : DEFAULT_TAG_GROUP;
 
   const entity = tagSchema.parse({
     id,

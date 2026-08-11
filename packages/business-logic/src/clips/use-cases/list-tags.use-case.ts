@@ -1,10 +1,13 @@
 import { tagRepository } from "@playbook/file-system";
 import type { TagEntity } from "../tag.entity";
-import { tagGroupSchema } from "../tag-group";
+import { DEFAULT_TAG_GROUP, tagGroupSchema } from "../tag-group";
 import { getPlatformSportUseCase } from "../../sports/use-cases/get-platform-sport.use-case";
 import { SPORT_PRESETS } from "../../sports/presets";
 
 const PRESET_CREATED_AT = new Date(0).toISOString();
+
+/** Tolerates records written before groups existed, and hand-edited junk in tags.json. */
+const storedGroupSchema = tagGroupSchema.catch(DEFAULT_TAG_GROUP);
 
 export async function listTagsUseCase(platformFolder: string): Promise<TagEntity[]> {
   const sport = await getPlatformSportUseCase(platformFolder);
@@ -23,7 +26,7 @@ export async function listTagsUseCase(platformFolder: string): Promise<TagEntity
   const customs = await tagRepository.list(platformFolder);
   const visibleCustoms: TagEntity[] = customs
     .filter((c) => !presetIds.has(c.id))
-    .map((c) => ({ ...c, group: tagGroupSchema.catch("custom").parse(c.group) }));
+    .map((c) => ({ ...c, group: storedGroupSchema.parse(c.group) }));
 
   return [...presets, ...visibleCustoms];
 }

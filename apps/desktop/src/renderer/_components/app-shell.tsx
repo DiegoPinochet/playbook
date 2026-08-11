@@ -19,7 +19,6 @@ export function AppShell({
   children: ReactNode;
 }) {
   const { open: notesOpen, toggle: toggleNotes } = useNotesStore();
-  const tourStepIndex = useTourStore((s) => s.stepIndex);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -35,12 +34,12 @@ export function AppShell({
     return () => window.removeEventListener("keydown", onKey);
   }, [toggleNotes]);
 
-  // Satisfy the tour's notes step from state rather than from the click, so a panel the user
-  // already had open (it persists in localStorage) doesn't leave the tour waiting forever.
-  // The store ignores signals the current step isn't waiting for, so this is a no-op otherwise.
+  // The tour waits on the panel opening. A panel that was already open is handled by that
+  // step's satisfiedIf, so this only needs the transition. The store ignores signals the
+  // current step isn't waiting for, making this a no-op the rest of the time.
   useEffect(() => {
     if (notesOpen) useTourStore.getState().signal("notes-opened");
-  }, [notesOpen, tourStepIndex]);
+  }, [notesOpen]);
 
   return (
     <div className="flex h-full flex-col bg-background text-foreground">

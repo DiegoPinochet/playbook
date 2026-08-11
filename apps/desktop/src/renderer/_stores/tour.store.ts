@@ -10,6 +10,7 @@ type TourStore = {
   stepIndex: number;
   /** Begins at step 0. No-op if already running. */
   start: () => void;
+  /** The single door every step change goes through. */
   setStepIndex: (index: number) => void;
   /** Ends the tour and stops it from auto-starting again. */
   finish: () => void;
@@ -25,7 +26,13 @@ export const useTourStore = create<TourStore>((set, get) => ({
     set({ running: true, stepIndex: 0 });
   },
   setStepIndex: (index) => {
-    set({ stepIndex: Math.max(0, Math.min(TOUR_STEPS.length - 1, index)) });
+    const next = Math.max(0, Math.min(TOUR_STEPS.length - 1, index));
+    set({ stepIndex: next });
+
+    // A gate the user satisfied before arriving here would never fire its signal again,
+    // stranding the tour. Re-check it on arrival and let the normal path advance.
+    const { awaits, satisfiedIf } = TOUR_STEPS[next]?.data ?? {};
+    if (awaits && satisfiedIf?.()) get().signal(awaits);
   },
   finish: () => {
     if (!get().running) return;
@@ -40,7 +47,7 @@ export const useTourStore = create<TourStore>((set, get) => ({
       const current = get();
       // Guard against a double signal (keyboard + click) skipping two steps.
       if (current.running && current.stepIndex === stepIndex) {
-        set({ stepIndex: stepIndex + 1 });
+        current.setStepIndex(stepIndex + 1);
       }
     }, ADVANCE_DELAY_MS);
   },

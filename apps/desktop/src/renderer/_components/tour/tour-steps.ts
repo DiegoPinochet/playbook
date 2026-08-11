@@ -1,5 +1,6 @@
 import type { Step } from "react-joyride";
 import { TAG_GROUP_LABELS } from "@playbook/business-logic/pure";
+import { useNotesStore } from "@/_stores/notes.store";
 
 /** Real user actions the tour can wait for. Emitted by the components that own each interaction. */
 export type TourSignal =
@@ -16,6 +17,11 @@ export type TourStepDef = Step & {
     awaits?: TourSignal;
     /** Hint shown in place of the Next button on a gated step. */
     nudge?: string;
+    /**
+     * Checked when the step opens: a gate the user already satisfied before arriving here
+     * would otherwise never fire its signal again and would strand the tour.
+     */
+    satisfiedIf?: () => boolean;
   };
 };
 
@@ -95,7 +101,12 @@ export const TOUR_STEPS: TourStepDef[] = [
     placement: "bottom",
     title: "Notes live alongside the film",
     content: "One more thing worth knowing about.",
-    data: { awaits: "notes-opened", nudge: "Open notes — click here, or press ⌘J" },
+    data: {
+      awaits: "notes-opened",
+      nudge: "Open notes — click here, or press ⌘J",
+      // The panel's open state persists in localStorage, so it is often already open.
+      satisfiedIf: () => useNotesStore.getState().open,
+    },
   },
   {
     target: '[data-tour="notes-panel"]',

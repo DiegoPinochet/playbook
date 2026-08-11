@@ -1,5 +1,5 @@
 import type { TooltipRenderProps } from "react-joyride";
-import { Button } from "@playbook/ui";
+import { Button, Card } from "@playbook/ui";
 import type { TourStepDef } from "./tour-steps";
 
 export function TourCard({
@@ -14,10 +14,7 @@ export function TourCard({
   const { awaits, nudge } = (step as TourStepDef).data;
 
   return (
-    <div
-      {...tooltipProps}
-      className="w-[22rem] rounded-lg border border-border bg-popover p-4 text-popover-foreground shadow-lg"
-    >
+    <Card {...tooltipProps} className="w-[22rem] bg-popover p-4 text-popover-foreground shadow-lg">
       <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
         Step {index + 1} of {size}
       </div>
@@ -37,6 +34,6 @@ export function TourCard({
           </Button>
         )}
       </div>
-    </div>
+    </Card>
   );
 }
