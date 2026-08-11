@@ -7,6 +7,7 @@ import { OpponentsPage } from "./app/opponents/page";
 import { OpponentDetailPage } from "./app/opponents/opponent-detail.page";
 import { MatchEditorPage } from "./app/matches/match-editor.page";
 import { PlayerReportPage } from "./app/matches/player-report.page";
+import { TourGuide } from "./_components/tour/tour-guide";
 
 export function App() {
   const { load, ready, settings, platformSport } = useSettingsStore();
@@ -45,6 +46,7 @@ export function App() {
             element={<PlayerReportPage />}
           />
         </Routes>
+        <TourGuide />
       </HashRouter>
       <Toaster />
     </TooltipProvider>
