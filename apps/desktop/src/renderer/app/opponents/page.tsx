@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Plus } from "lucide-react";
+import { GraduationCap, Plus } from "lucide-react";
 import {
   Button,
   Card,
@@ -17,13 +17,16 @@ import {
   Input,
   Label,
   toast,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
 } from "@playbook/ui";
 import { AppShell } from "@/_components/app-shell";
 import { useSettingsStore } from "@/_stores/settings.store";
 import { useOpponentsStore } from "@/_stores/opponents.store";
 
 export function OpponentsPage() {
-  const { settings } = useSettingsStore();
+  const { settings, setTourEnabled } = useSettingsStore();
   const { opponents, load, create } = useOpponentsStore();
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -37,9 +40,37 @@ export function OpponentsPage() {
     <AppShell
       crumbs={[{ label: "Opponents" }]}
       rightSlot={
-        <Button size="sm" onClick={() => setDialogOpen(true)}>
-          <Plus className="size-4" /> New opponent
-        </Button>
+        <>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="icon-sm"
+                variant={settings.tourEnabled ? "secondary" : "ghost"}
+                aria-label="Guided tour"
+                aria-pressed={settings.tourEnabled}
+                onClick={async () => {
+                  const next = !settings.tourEnabled;
+                  try {
+                    await setTourEnabled(next);
+                    toast.success(
+                      next ? "Guided tour on — open a match to start." : "Guided tour off."
+                    );
+                  } catch (err) {
+                    toast.error(
+                      err instanceof Error ? err.message : "Could not save the setting"
+                    );
+                  }
+                }}
+              >
+                <GraduationCap className="size-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Guided tour</TooltipContent>
+          </Tooltip>
+          <Button size="sm" onClick={() => setDialogOpen(true)}>
+            <Plus className="size-4" /> New opponent
+          </Button>
+        </>
       }
     >
       <div className="grid w-full auto-rows-min content-start grid-cols-1 gap-4 overflow-auto p-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
